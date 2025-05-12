@@ -1,437 +1,461 @@
-# 솔라나 트랜잭션
+# Solana Transaction
 
-본 아티클은 Blockchain at Yonsei가 Helius의 솔라나 리포트를 기반으로 솔라나의 트랜잭션 메커니즘을 6단계로 분석했습니다. 
+This article by Blockchain at Yonsei analyzes Solana's transaction mechanism in 6 stages based on Helius's Solana report.  
+Helius Solana Report: https://report.helius.dev
 
-**1\. 개요**
+**1\. Introduction**
 
-솔라나(Solana)는 초당 수천 건의 트랜잭션(TPS)을 처리할 수 있는 **고성능, 고처리량 블록체인**입니다. 기존 블록체인들이 처리 속도가 느리고 수수료가 비싼 반면, 솔라나는 **매우 빠른 트랜잭션 처리 속도와 낮은 수수료**를 제공합니다. 
+Solana is a **high-performance, high-throughput blockchain** capable of processing thousands of transactions per second (TPS). Unlike traditional blockchains with slow processing speeds and high fees, Solana provides **extremely fast transaction processing and low fees**.
 
-기존 블록체인의 속도를 지연시키는 주요 요인 중 하나는 **멤풀(mempool)**이라는 ‘거래 대기실’인데, 솔라나는 이 멤풀을 완전히 제거하고 더 표율적인 네트워크 프로토콜을 도입하여 속도와 효율성을 극대화했습니다. 
+One of the main factors slowing down traditional blockchains is the **mempool**, a 'transaction waiting room'. Solana has completely eliminated this mempool and introduced a more efficient network protocol to maximize speed and efficiency.
 
-이 글에서는 **Helius**의 6단계 프레임워크를 사용해 솔라나의 **트랜잭션 처리 워크플로우**를 설명하며, 트랜잭션이 어떻게 **캡처되고, 우선순위가 정해지며, 전송되는지** 구체적으로 다룹니다.
+This article explains Solana's **transaction processing workflow** using **Helius's** 6-stage framework, detailing how transactions are **captured, prioritized, and transmitted**.
 
-# **2\. 솔라나 트랜잭션 생애 주기의 6단계**
+# **2\. Six Stages of Solana's Transaction Lifecycle**
 
 **![][image1]**
 
-## **2.1 사용자 및 트랜잭션 제출**
+## **2.1 Users & Transaction Submission**
 
-솔라나 트랜잭션은 **사용자**로부터 시작되며, 사용자는 지갑이나 애플리케이션을 이용해 트랜잭션을 생성하고 서명합니다. 이 과정에서 사용자는 **솔라나 RPC(Remote Procedure Call) 노드**와 상호작용합니다. RPC 노드는 사용자와 솔라나 블록체인 사이에서 통신 다리 역할을 하는 중개자 서버입니다. 사용자가 지갑이나 앱을 통해 트랜잭션을 생성하는 등의 활동을 할 때, 해당 요청을 받아서 블록체인 네트워크에 전달하고, 결과를 다시 사용자에게 돌려줍니다.
+Solana transactions start with **users**, who generate and sign them using wallets or applications. In this process, users interact with **Solana's RPC (Remote Procedure Call) nodes**. RPC nodes act as intermediary servers that bridge communication between users and the Solana blockchain. When users perform activities like creating transactions through wallets or applications, these nodes receive the requests, forward them to the blockchain network, and return the results back to users.
 
-## **트랜잭션 생성 방법**
+## **How Transactions Are Created**
 
 **![][image2]**
 
-사용자는 자신의 **Ed25519 개인 키(private key)** 로 트랜잭션에 서명합니다.
+Users sign transactions with their **Ed25519 private keys**.
 
-각 트랜잭션은 다음 내용을 포함합니다:
+Each transaction includes:
 
-* **헤더(Header)**: 해당 트랜잭션에 서명해야 하는 계정(서명자)을 명시합니다.  
-* **계정 주소(Account Addresses)**: 트랜잭션에서 데이터를 읽거나 변경할 계정들의 목록입니다.  
-* **최근 블록해시(Recent Blockhash)**: 최근에 생성된 블록의 해시값으로, 동일한 트랜잭션이 반복 실행되는 리플레이 공격(Replay Attack)을 방지합니다.  
-* **명령어(Instructions)**: 온체인 프로그램을 호출하여, 어떤 작업을 수행할지 구체적으로 지시합니다.
+* **Header**: Specifies which accounts (signers) must sign the transaction.  
+* **Account Addresses**: Lists the accounts that will be read from or modified by the transaction.  
+* **Recent Blockhash**: Includes the hash of a recent block to prevent replay attacks (where the same transaction could be executed multiple times).  
+* **Instructions**: Calls on-chain programs to specify what actions to perform.
 
-## **RPC 노드를 통한 트랜잭션 제출**
+## **Submitting Transactions via RPC Nodes**
 
-* 사용자가 지갑이나 앱을 통해 트랜잭션을 작성하고, 이를 RPC 노드에 보냅니다. RPC 노드는 해당 요청을 블록체인 네트워크에 전달하는 역할을 합니다.  
-* 사용자는 **우선순위 수수료(Priority Fees)**라는 추가 비용을 지불해 자신의 트랜잭션이 더 빨리 처리되도록 요청할 수 있습니다.  
-* RPC 노드는 트랜잭션을 실제로 네트워크에 보내기 전에 **모의 실행(simulate)**하여 해당 트랜잭션의 유효성을 확인합니다. 이를 통해 트랜잭션이 정상적으로 처리될 수 있는지, 오류가 없는지 미리 확인할 수 있습니다. (이 기능은 기본적으로 활성화되어 있으며, *skipPreflight* 옵션이 **false**일 때 동작합니다.)
+* Users create transactions using a wallet or application and send them to RPC nodes. RPC nodes act as a bridge, forwarding the transactions to the Solana blockchain network.  
+* Users can pay additional **Priority Fees** to request faster processing of their transactions.  
+* RPC nodes **simulate** transactions to verify their validity before sending them to the actual network. This allows users to check whether the transaction would succeed and detect any errors in advance. (This feature is enabled by default and runs when the *skipPreflight* option is set to **false**.)
 
-## **2.2 걸프 스트림(Gulf Stream): 멤풀(Mempool)이 없는 트랜잭션 전달**
+## **2.2 Gulf Stream: Mempool-less Transaction Forwarding**
 
-## **멤풀(Mempool) 이란?**
+## **What is Mempool?**
 
-멤풀은 기존 블록체인(비트코인, 이더리움)에서 트랜잭션이 처리되기 전 일시적으로 대기하는 메모리 공간입니다. 사용자의 거래가 블록에 포함되어 ‘확인(confirm)’되기 전까지 ‘미확인’ 상태로 멤풀에 저장됩니다. 각 노드가 자신만의 멤풀을 가지고 있으며, 채굴자/검증자가 멤풀에서 대기중인 트랜잭션 중 일부를 선택해 블록에 포함시킵니다. 
+A mempool (memory pool) is a temporary storage area in traditional blockchains (Bitcoin, Ethereum) where transactions wait before being processed. When a user initiates a transaction, it is stored in the mempool in an "unconfirmed" state until it is included in a block and confirmed. Each node maintains its own mempool, and miners/validators select transactions from their mempool to include in the next block.
 
-트랜잭션이 멤풀에 오래 머무를수록 네트워크 혼잡이 발생하며, 사용자들이 자신의 트랜잭션을 빨리 처리 받기 위한 수수료 경쟁이 치열해진다는 문제점이 있습니다.
+If transactions remain in the mempool for a long time, network congestion occurs, and users often compete by offering higher fees to get their transactions processed faster.
 
-**솔라나의 걸프 스트림![][image3]**
+**Solana's Gulf Stream![][image3]**
 
-솔라나는 이러한 대기실(멤풀)을 완전히 제거했습니다. 대신, “걸프 스트림(Gulf Stream)”이라는 시스템을 도입했습니다. 걸프 스트림은 네트워크 상의 노드가 트랜잭션을 수신한 시점부터, 해당 트랜잭션이 현재 슬롯의 리더(leader)에게 전달되어 TPU(Transaction Processing Unit, 트랜잭션 처리 장치)의 Fetch 단계에 도달하기까지의 과정을 지칭합니다.
+Solana has completely eliminated this waiting room (mempool). Instead, it introduced a system called "Gulf Stream." Gulf Stream refers to the process from when a node receives a transaction on the network until it reaches the leader of the current slot and arrives at the Fetch stage of the TPU (Transaction Processing Unit).
 
-이 시스템은 트랜잭션을 대기시키지 않고 **미리 정해진 미래 블록 생성자(슬롯의 리더)에게 직접 전송**하여 트랜잭션을 “대기 없이” 빠르고 안전하게 처리합니다. 이를 통해 네트워크 혼잡과 트랜잭션 확인 시간을 현저히 줄일 수 있습니다.
+This system **directly sends transactions to predetermined future block producers (slot leaders)** to process transactions "without waiting," quickly and safely. This significantly reduces network congestion and transaction confirmation times.
 
-## **리더 노드(Leader Node)의 역할**
+## **Role of the Leader Node**
 
-리더는 특정 시간 동안(약 0.4초, ‘슬롯’이라 지칭) 블록을 생성할 권한을 가진 검증자입니다. 미리 2일 단위(에포크)로 어떤 검증자가 언제 리더가 될지 리더 스케줄이 정해지고, 이는 모든 검증자가 공유합니다. 리더는 자신의 슬롯 시간에 트랜잭션을 처리하고 블록을 생성한 후, 다음 리더에게 차례를 넘깁니다.
+A leader is a validator with authority to produce blocks for a specific time period (about 0.4 seconds, called a 'slot'). The leader schedule is determined in advance for 2-day units (epochs) and is shared among all validators. The leader processes transactions and creates blocks during its slot time, then passes the turn to the next leader.
 
-## **멤풀 제거 \- 트랜잭션 처리 방식**
+## **Eliminating the Mempool - Transaction Processing Method**
 
-* **직접 전송 시스템**: 트랜잭션을 멤풀에서 대기시키는 과정 없이, 걸프 스트림은  트랜잭션을 다음 슬롯의 리더(Leader)에게 즉시 전송합니다. 이를 통해 검증자(Validator)가 많은 양의 트랜잭션을 장기 저장할 필요가 없어 메모리 사용량을 줄이며, 프론트러닝 (front-running)과 스팸 공격을 효과적으로 억제합니다.  
-* **자동 만료 시스템**: 모든 트랜잭션 메시지는 최근의 블록해시(recent blockhash)를 포함해야 하며, 이는 약 150 슬롯(대략 1분) 동안만 유효합니다. 150 슬롯이 지나면 블록해시가 만료되고, 만료된 트랜잭션은 네트워크에서 자동 삭제되어 오래된 데이터가 쌓이지 않습니다.
+* **Direct Forwarding System**: Without waiting for transactions in a mempool, Gulf Stream immediately sends transactions to the next slot's leader. This eliminates the need for validators to store large volumes of transactions long-term, reducing memory usage and effectively suppressing front-running and spam attacks.  
+* **Automatic Expiration System**: All transaction messages must include a recent blockhash, which is only valid for about 150 slots (roughly one minute). After 150 slots, the blockhash expires and expired transactions are automatically deleted from the network, preventing old data accumulation.
 
-## **트랜잭션 전달 과정 (예시)**
+## **Transaction Forwarding Process (Example)**
 
-1. 솔라나는 미리 정해진 리더 스케줄에 따라 향후 슬롯의 블록 생성자를 지정합니다.  
-2. 사용자가 트랜잭션을 생성하면, 이를 RPC 노드 (혹은 검증자 노드)에 전송합니다.  
-3. RPC 노드는 다음 슬롯 리더를 확인해 트랜잭션을 **직접 전달(forward)** 합니다.  
-4. 리더는 트랜잭션을 검증한 후, 블록에 포함시킵니다.  
-5. 1분 내에 처리되지 않은 트랜잭션은 자동으로 삭제됩니다.
+1. Solana designates future block producers according to a predetermined leader schedule.  
+2. When a user creates a transaction, it is sent to an RPC node (or validator node).  
+3. The RPC node checks the next slot leader and **directly forwards** the transaction.  
+4. The leader validates the transaction and includes it in a block.  
+5. Transactions not processed within one minute are automatically deleted.
 
-## **UDP에서 QUIC로의 전환**
+## **Transition from UDP to QUIC**
 
-초기에 솔라나(Solana)는 네트워크 프로토콜로 **UDP** 를 사용했습니다. UDP는 연결을 설정하지 않고 데이터를 보내는 방식으로 속도가 빠르지만 다음과 같은 문제점을 겪었습니다:
+Initially, Solana used **UDP** as its network protocol. UDP transmits data without establishing a connection between sender and receiver, offering the advantage of speed but experiencing the following issues:
 
 ![][image4]
 
-* 연결 지향이 아니며 흐름 제어나 패킷 수신 확인이 부족합니다. 즉, 데이터가 제대로 도착했는지 확인하지 않고, 네트워크가 혼잡해도 전송 속도를 조절하지 못합니다.  
-* 누가 얼마나 많은 데이터를 보내는지 제한하거나, 악의적인 행동(캔디머신 스팸 공격)을 방지/완화할 실질적인 방법이 없습니다.
+* It is not connection-oriented and lacks flow control or packet receipt confirmation. In other words, it doesn't verify whether data arrived properly and can't adjust transmission speeds when the network is congested.  
+* There is no effective way to limit how much data someone sends or prevent/mitigate malicious behavior (Candy Machine spam attacks).
 
-이후 구글(Google)이 개발한 **QUIC** 으로 프로토콜을 전환하면서 다음과 같은 개선점을 얻게 되었습니다:
+After switching to **QUIC**, developed by **Google**, Solana gained the following improvements:
 
-![][image5]
+* **Congestion Control**: Minimizes transaction loss.  
+* **Reliability**: Reduces packet loss, improving communication quality.  
+* **Security**: Encrypted channels lower the possibility of attacks.
 
-* **혼잡 제어(Congestion Control)**: 트랜잭션 유실을 최소화합니다.  
-* **신뢰성(Reliability)**: 패킷 손실을 줄여 통신 품질을 향상합니다.  
-* **보안성(Security)**: 암호화된 채널로 공격 가능성을 낮춥니다.
+The adoption of QUIC has **improved the stability and reliability of the Solana network**. However, despite these improvements, there is still ongoing discussion about how effective the QUIC implementation is in Solana.
 
-QUIC의 도입으로 인해 솔라나 네트워크의 **안정성과 신뢰성이 향상되었습니다**. 그러나 이러한 개선에도 불구하고 QUIC 구현이 솔라나에서 얼마나 효과적인지에 대해서는 여전히 논의가 진행 중입니다.
+## **Stake-Weighted Quality of Service (SWQoS)**
 
-## **지분 가중 서비스 품질 (SWQoS, Stake-Weighted Quality of Service)**
+**![][image5]**
+
+## **How SWQoS Works on Solana**
+
+Stake-Weighted Quality of Service (SWQoS) is a system that gives higher transaction processing priority to validators who stake more (SOL). Validators who stake more SOL secure more concurrent connections (streams), ensuring that important transactions aren't dropped during network congestion.
+
+The Solana network has a total of 2,500 connection channels:
+
+* 500 connections: Available for all RPC nodes to use (general channels).  
+* 2,000 connections: Only available to staked validators (stake-weighted connections).
+
+Each validator receives a portion of these connections based on their staked proportion.  
+In other words, validators with higher stake can open more streams, allowing them to handle a higher transaction load.
+
+Additionally, in the TPU system, each connection (stream) limits the Packets Per Second (PPS) according to stake ratio (rate limiting). Therefore, nodes without stake have very low PPS limits applied, minimizing their impact on the network.
+
+**Pros and Cons**
+
+* **Enhanced User Experience (UX)**: Thanks to SWQoS, from a user's perspective, transactions are processed quickly even when the network is congested.  
+* **Barriers to Entry**: Since SWQoS provides more bandwidth and concurrency to high-stake validators, smaller or independent validators may face higher barriers to network participation.  
+* **Trust-Based Assumptions**: RPC nodes are not staked, have no voting rights, and don't participate in consensus, so they cannot directly benefit from SWQoS. Therefore, a trust relationship must be formed between validators and RPC nodes to maximize the benefits of SWQoS.
+
+In Solana, how well transactions enter the network and how quickly they are included in blocks are determined by different mechanisms. These two aspects are managed through Stake-Weighted Quality of Service (SWQoS) and Priority Fees, respectively. Below is a summary of the differences between these two systems:
+
+**Difference: SWQoS vs Priority Fees**
+
+* **SWQoS:** A system that provides fast dedicated channels (like VIP-only entrances) allowing validators with more stake to send transactions to the network more easily and in greater volume when the network is congested. In other words, it guarantees 'priority at the network entrance' so transactions enter the network successfully. SWQoS does not determine when transactions will actually be included in blocks.  
+* **Priority Fees:** A system that determines the order of processing after transactions have already entered the leader's queue, prioritizing transactions that pay higher fees. This determines which transactions enter the block first.
+
+## **2.3 Block-Building: TPU & Execution**
 
 **![][image6]**
 
-## **솔라나에서 SWQoS의 작동 방식**
+The **Transaction Processing Unit (TPU)** is Solana's **block production engine**. To efficiently process tens of thousands of transactions per second, it operates in parallel across several stages:
 
-지분 가중 서비스 품질(SWQoS)은 솔라나 코인(SOL)을 더 많이 스테이킹한 검증자(validator)에게 더 높은 트랜잭션 처리 우선순위를 부여하는 시스템입니다. 더 많은 SOL을 스테이킹한 검증자들은 더 많은 동시 접속(stream)을 확보하게 되어, 혼잡 상황에서도 중요한 트랜잭션이 누락되지 않도록 보장받습니다.
+**1\. Fetch Stage/QUIC Streamer: Collecting Transaction Packets from the Network**
 
-솔라나 네트워크에는 총 2,500개의 연결 채널이 있습니다:
+* Packet memory allocation: Transaction packets received through the QUIC protocol are temporarily stored in memory.  
+* Packet merging: Several packets that arrive simultaneously are merged into a single transaction.  
+* PPS limit application: According to SWQoS, the Packets Per Second (PPS) is restricted. Validators with higher stakes can transmit more packets.
 
-* 500개: 모든 RPC 노드가 사용할 수 있는 일반 채널.  
-* 2,000개: 스테이킹한 검증자만 사용 가능한 지분 가중 연결.
+**2\. SigVerify Stage: Transaction Validation**
 
-각 검증자는 스테이킹한 지분 비율에 따라 이 연결을 배분받습니다.  
-즉, 지분이 높은 검증자는 더 많은 스트림을 열 수 있어 더 많은 트랜잭션 부하를 처리할 수 있습니다.
+* Deduplication: Removes duplicate transactions.  
+* Load-Shedding: When the network is overloaded, some excessive packets are removed to reduce network load.  
+* Signature Verification: Verifies the authenticity of transaction signatures, discarding packets with invalid signatures.
 
-또한, TPU 시스템에서는 각 연결(스트림)마다 초당 허용 패킷 수(Packets Per Second, PPS)를 지분 비율에 따라 제한(rate limiting)합니다. 따라서, 지분이 없는 노드는 매우 낮은 PPS 제한이 적용되어, 네트워크에 미치는 영향이 미미합니다.
+**3\. Banking Stage: Transaction Execution and Block Construction**
 
-**차이점: SWQoS vs 우선순위 수수료(Priority Fees)**
+* Transaction processing decision: Determines whether to forward, hold, or process transactions.  
+* If the validator is the current leader, it processes waiting or newly arrived transactions in the current slot.  
+* Forms a candidate block.
 
-* **SWQoS:**  네트워크가 혼잡할 때 지분(스테이킹)이 많은 검증자가 트랜잭션을 더 쉽게, 더 많이 네트워크에 보낼 수 있도록 빠른 전용 통로(마치 VIP 전용 입구와 같음)를 제공하는 시스템입니다.  즉, 트랜잭션이 네트워크에 잘 들어가도록 ‘네트워크 입구에서의 우선권’을 보장합니다. 트랜잭션이 실제로 블록에 언제 포함될지는 SWQoS가 결정하지 않습니다.   
-* **우선순위 수수료:** 트랜잭션이 이미 리더의 큐(queue)에 들어온 후, 수수료를 더 많이 낸 트랜잭션이 먼저 처리되도록 순서를 결정하는 시스템입니다. 즉, 블록 안에 어떤 트랜잭션이 먼저 들어갈지를 결정합니다.
+**4\. Broadcast Stage: Propagating the Completed Block to the Network**
 
-**장단점**
+* Shred creation: Converts validated transactions into **entries**, then packages them into **shreds**. This is similar to compressing a large file with ZIP for split transmission.  
+* After serializing, signing, and encoding the shreds, they are quickly propagated to all validators through the **Turbine protocol**.
 
-* **향상된 사용자 경험(Enhanced UX)**: SWQoS 덕분에 사용자 입장에서는 네트워크가 혼잡할 때도 트랜잭션이 신속히 처리됩니다.  
-* **진입 장벽(Barriers to Entry)**: SWQoS가 지분이 높은 검증자에게 더 많은 대역폭과 동시성을 제공하기 때문에, 소규모 또는 독립적인 검증자가 네트워크 참여시 진입 장벽이 높아질 수 있습니다.  
-* **신뢰 기반 가정(Trust Assumptions)**: RPC 노드는 스테이킹되지 않고, 투표권도 없으며, 합의(consensus)에도 참여하지 않으므로, SWQoS의 혜택을 직접적으로 받을 수 없습니다. 따라서 SWQoS의 혜택을 최대한 활용하려면 검증자와 RPC 노드 간에 신뢰 관계가 형성되어야 합니다.
+In this way, Solana's TPU manages high transaction loads through the stages of packet collection > validation > execution > propagation, verifies the authenticity of transactions, and creates blocks according to the schedule. Through parallel processing, the stake-weighting system, and QUIC protocol, it consistently delivers high performance.
 
-## **2.3 블록 생성(Block-Building): TPU 및 실행(Execution)**
+## **Banking Stage in Detail**
 
-**![][image7]**
+The **Banking Stage** is the core stage of the TPU that turns transactions into actual blocks. It determines how validators process received transactions and constructs candidate blocks.
 
-**TPU**(트랜잭션 처리 장치, Transaction Processing Unit) 는 솔라나(Solana)의 **블록 생산 엔진**입니다. 초당 수만 건의 트랜잭션을 효유럭으로 처리하기 위해 여러 단계로 나뉘어 병렬적으로 작동합니다:
+**1\. Determining Packet Treatment**
 
-**1\. Fetch Stage/QUIC Streamer: 네트워크로 들어오는 트랜잭션 패킷 수집**
+* **Forward**: If the validator is not the current leader, it forwards the transaction to the leader for the next slot.  
+* **Hold**: If the validator is scheduled to be the leader for the next slot, it temporarily keeps the transaction in a waiting state.  
+* **Process**: If the validator is the leader for the current slot, it executes this transaction to update the Bank state.
 
-* 패킷 메모리 할당: QUIC 프로토콜을 통해 수신된 트랜잭션 패킷을 받아 메모리에 임시 저장합니다.  
-* 패킷 병합: 동시에 도착한 여러 패킷을 하나의 트랜잭션으로 병합합니다.  
-* PPS 제한 적용: SWQoS에 따라 초당 패킷 전송량(PPS)을 제한합니다. 지분이 높은 검증자는 더 많은 패킷을 전송할 수 있습니다.
+**2\. Bank Integration**
 
-**2\. 서명 검증 단계(Sig Verify Stage): 트랜잭션 유효성 검증**
+* A "Bank" is a kind of snapshot in the Solana blockchain that represents the ledger state of the current slot. It acts as a "real-time ledger" showing the current state of all accounts' balances, statuses, and data.  
+* Successfully processed transactions update the Bank state (balances, account data, etc.), forming the foundation for the next block.
 
-* 중복 제거: 중복된 트랜잭션을 제거합니다.  
-* 부하 분산 (Load-Shedding): 네트워크가 과부하 상태일 때, 일부 과도한 패킷을 제거하여 네트워크 부하를 줄입니다다.  
-* 서명 검증: 트랜잭션 서명의 진위성을 확인하고, 잘못된 서명의 패킷은 폐기합니다.
+**3\. Parallel Execution**
 
-**3\. 뱅킹 단계(Banking Stage): 트랜잭션 실행 및 블록 구성**
+* Parallel execution means processing multiple transactions simultaneously rather than one by one.  
+* Non-conflicting transactions: Bundles up to 64 non-conflicting transactions into one entry and processes them simultaneously.  
+* Conflicting transactions: Separated into distinct entries and executed sequentially.
 
-* 트랜잭션 처리 결정: 트랜잭션을 다른 리더에게 전달(Forward)할지, 보류(Hold)할지, 처리(Process)할지를 결정합니다.  
-* 검증자가 현재 리더(Leader)라면, 대기 중이거나 새로 들어온 트랜잭션을 현재 슬롯에서 처리합니다다.  
-* 후보 블록(candidate block)을 구성합니다.
+**4\. Validation and Block Assembly**
 
-**4\. 브로드캐스트 단계(Broadcast Stage): 완성된 블록을 네트워크에 전파**
+* Invalid transactions (signature errors, insufficient funds, etc.) are discarded.  
+* Verified transactions are recorded in the Accounts DB.  
+* When the leader slot ends, the generated block is finalized and propagated to the network.
 
-* 슈레드(Shred) 생성: 검증된 트랜잭션을 **엔트리(entries)**로 변환하고, 이를 **슈레드(shreds)**로 패키징합니다**.** 이는 마치 대형 파일을 ZIP으로 압축해 분할 전송하는 것과 같습니다.  
-* 슈레드를 직렬화(serialization), 서명(sign), 인코딩(encode)한 후 **터빈(Turbine)** 프로토콜을 통해 모든 검증자에게 빠르게 전파합니다.
+Through this process, Solana efficiently processes many transactions in parallel and accurately manages account-based state.
 
-이처럼 솔라나 TPU는 패킷 수집 \> 검증 \> 실행 \> 전파 단계를 거쳐 높은 트랜잭션 부하를 관리하며, 트랜잭션의 진위성을 검증하고 예정된 스케줄에 따라 블록을 생성합니다. 병렬 처리 방식과 지분 가중(stake-weighting) 시스템, QUIC 프로토콜 등을 결합하여 일관되게 높은 처리 성능능을 제공합니다.
+## **2.4 Turbine Block Propagation**
 
-## **뱅킹 단계(Banking Stage) 세부 설명**
+After a block is built, it's ready to be transmitted to all participants in the network via Turbine. This process is called **block propagation**.
 
-**뱅킹 단계(Banking Stage)**는 트랜잭션을 실제 블록으로 만드는 TPU의 핵심 단계입니다. 검증자가 수신된 트랜잭션을 어떻게 처리할지 결정하고 후보 블록(candidate block)을 생성합니다.
+![][image7]
 
-**1\. 패킷 처리 방식 결정(Determining Packet Treatment)**
+## **Core Principles of Turbine**
 
-* **전달(Forward)**: 검증자가 현재 리더가 아닌 경우, 블록을 생산할 예정인 다음 슬롯의 리더에게 트랜잭션을 전달합니다.  
-* **보류(Hold)**: 검증자가 다음 슬롯의 리더가 될 예정이라면 트랜잭션을 일시적으로 대기 상태로 유지합니다.  
-* **처리(Process)**: 검증자가 현재 슬롯의 리더라면 이 트랜잭션을 실행해 Bank 상태를 업데이트합니다.
-
-**2\. 뱅크 통합(Bank Integration)**
-
-* “뱅크(Bank)”는 솔라나 블록체인에서 현재 슬롯의 원장(ledger) 상태를 나타내는 일종의 스냅샷(snapshot)입니다. 모든 계정의 잔액, 상태, 데이터 등이 어떤 상태인지지를 보여주는 “실시간 장부” 역할을 합니다.   
-* 성공적으로 처리된 트랜잭션은 뱅크 상태(잔액, 계정 데이터 등)를 업데이트하여 다음 블록의 기초를 형성합니다.
-
-**3\. 병렬 실행(Parallel Execution)**
-
-* 병렬 실행은 트랜잭션을 하나씩 차례로 처리하는 것이 아니라, 동시에 여러 개를 처리함을 의미합니다.  
-* 충돌 없는 트랜잭션: 상호 충돌이 없는(non-conflicting) 트랜잭션을 64개씩 하나의 엔트리(entry)로 묶어 동시에 처리합니다.  
-* 충돌(conflict)이 있는 트랜잭션: 별도의 엔트리로 분리하여 순차적으로 실행합니다.
-
-**4\. 검증 및 블록 조립(Validation and Block Assembly)**
-
-* 유효하지 않은 트랜잭션(서명 오류, 자금 부족 등)은 폐기됩니다.  
-* 검증된 트랜잭션은 Accounts DB에 기록됩니다.  
-* 리더 슬롯이 끝나면, 생성된 블록은 최종 조립되어 네트워크에 전파됩니다.
-
-이 과정을 통해 솔라나는 많은 트랜잭션을 동시에 효율적으로 병렬 처리하며, 계정 기반의 상태(Account-based state)를 신속하고 정확하게 관리합니다.
-
-## **2.4 터빈(Turbine)을 이용한 블록 전파**
-
-블록이 구축되면 Turbine을 통해 네트워크의 모든 참여자에게 전파될 준비가 됩니다. 이 과정을 **블록 전파**라고 합니다.
+Turbine is Solana's **block propagation protocol**. Instead of sending the entire block to all nodes at once, it uses a more efficient method.
 
 ![][image8]
 
-## **터빈(Turbine)의 핵심 원리**
+**1. Shredding: Breaking Blocks into Pieces**  
+The leader node splits the block data into MTU-sized data shreds (the maximum amount of data that can be transmitted from one node to another without further splitting) and creates 32 data shreds. It also creates 32 recovery shreds to prepare for potential data loss and corruption.  
 
-터빈은 솔라나의 **블록 전파 프로토콜**입니다. 모든 노드에 전체 블록을 한번에 보내는 대신, 더 효율적인 방법을 사용합니다.
+**2. Erasure Coding: Data Recovery Insurance**
+* Using the Reed-Solomon erasure coding method, 32 recovery shreds are generated. Recovery shreds are redundant packets containing parity information (recovery data).  
+* Even if packets are lost or arrive late, validators can recover the lost data through parity information.  
+* Solana uses 32:32 FEC (Forward Error Correction). This means that even if up to 32 of the 64 packets are lost, they can be recovered without retransmission, providing about 99% transmission success rate. Leaders have the authority to increase the FEC ratio to improve the probability of successful block transmission.  
+
+**3. Turbine Tree Structure: Efficient Propagation**  
+Turbine uses a tree-based protocol for efficient data transfer between validators.
 
 ![][image9]
 
-1. **슈레딩(Shredding): 블록 분할**
-   리더 노드는 블록 데이터를 MTU 크기(Maximum Transmission Unit)의 데이터 슈레드로 분할하고 해당 복구 슈레드를 생성합니다.
-2. **삭제 부호화(Erasure Coding): 데이터 복구 메커니즘**
-* Reed-Solomon 삭제 코드를 사용하여, 슈레드에 패리티(parity) 정보를 가진 중복 패킷(redundant packet)을 생성합니다.
-* 패킷 손실 또는 지연 도착 시에도 검증자는 패리티 정보를 통해 손실된 데이터를 복구할 수 있습니다.
-* 솔라나는 32:32의 FEC(Forward Error Correction) 비율을 사용합니다. 이는 64개 패킷 중 최대 32개가 손실되어도 재전송 없이 복구 가능함을 의미하며, 약 99%의 전송 성공률을 제공합니다. 리더는 블록 전파 성공 확률을 높이기 위해 FEC 비율을 조정할 수 있습니다.
-3. **터빈 트리 구조(Turbine Tree): 효율적 전파**
-   터빈은 검증자 간에 효율적으로 데이터를 전달하기 위한 트리(Tree) 기반의 프로토콜을 사용합니다.
+The forwarding process is as follows:
 
-![][image10]
+* **List Creation**: All validators in the network are sorted by stake (amount of staked SOL). Higher-stake validators are prioritized to receive data faster.  
+* **List Shuffling**: The sorted validator list is deterministically shuffled using a seed based on the slot leader's ID, slot number, shred index, etc., making data transmission more efficient. Here, "deterministically shuffled" means that the shuffling method is not completely random but always produces the same result based on predetermined rules and input values (e.g., seed value, slot leader ID, slot number, shred index). This ensures that all nodes in the network can obtain the same shuffled result if they know the same input values.  
+* **Layer Formation**: The shuffled list is organized into a hierarchical tree structure based on a parameter called DATA_PLANE_FANOUT (currently set at 200). Through a method where one node forwards data to lower nodes, rapid propagation is ensured, typically requiring only 2-3 hops (Leader → Root → Layer 1 → Layer 2) to reach all validators.
 
-전달 과정은 다음과 같습니다.
+Currently, Turbine uses the UDP protocol for block propagation, providing very low latency.
 
-* **목록 생성(List Creation)**: 네트워크의 모든 검증자들이 지분(stake)에 따라 정렬됩니다. 이 때 지분이 높은 검증자들이 더 빨리 데이터를 수신하도록 우선순위가 부여됩니다.  
-* **목록 셔플링(List Shuffling)**: 정렬된 검증자 목록은 슬롯 리더(slot leader)의 ID, 슬롯 번호, 슈레드 인덱스(슈레드 번호) 등을 기반으로 하는 시드(seed)를 이용해 결정론적으로 무작위로 섞이며, 데이터 전송이 더욱 효율화됩니다. \- 이때 “결정론적으로 섞인다”는 것은, 섞는(셔플) 방법이 완전한 무작위(random)가 아니라, 정해진 규칙과 입력값(예: 시드 값, 슬롯 리더 ID, 슬롯 번호, 슈레드 인덱스 등)에 따라 항상 똑같은 결과를 내는 것을 의미합니다. 이는 네트워크의 모든 노드가 독립적으로 셔플을 해도, 동일한 입력값만 알면 똑같은 섞인 결과를 얻을 수 있게 합니다.  
-* 계층 형성: 셔플된 목록은 DATA\_PLANE\_FANOUT(현재 200으로 설정됨)이라는 매개변수를 기반으로 계층적 트리 구조로 배치됩니다. 한 노드가 하위 노드에게 데이터를 전달하는 방식을 통해 빠른 전파가 보장되며, 일반적으로 모든 검증기에 도달하는 데 2\~3개의 홉(리더 → 루트 → 계층 1 → 계층 2)만 필요합니다.
+## **Advantages Over Traditional Gossip**
 
-현재 터빈은 블록 전파에 UDP 프로토콜을 사용하여 매우 낮은 지연시간(latency)을 제공합니다.
+The gossip protocol is a block propagation mechanism widely used in traditional blockchains, where each node passes received information to randomly selected neighboring nodes. This has the characteristic of information gradually spreading throughout the network, but scalability issues arise as the number of nodes increases.
 
-## **기존 가십(Gossip) 방식 대비 장점**
+Turbine overcomes these limitations of the gossip method, providing the following advantages:
 
-1. **확장성(Scalability)**: 트리 기반의 데이터 분산으로 단일 노드에 과도한 부하가 발생하지 않습니다.
-2. **지연 감소(Latency Reduction):** 병렬식 데이터 전달로 블록 데이터가 빠르게 전파되고 확인됩니다.
-3. **무결성 보장(Data Integrity):** 삭제 부호화와 재전송 메커니즘을 통해 패킷 손실 시에도 데이터를 효율적으로 복구할 수 있어 데이터 무결성을 보장합니다.
-4. **대역폭 효율성(Bandwidth Efficiency):** 각 노드가 중복 없이 필요한 최소한의 데이터만 처리하므로 네트워크 대역폭을 효율적으로.사용합니다.
+1. **Scalability**: Tree-based data distribution prevents excessive load.  
+2. **Reduced Latency:** Parallel data forwarding enables quick block data propagation and confirmation.  
+3. **Integrity Guarantee:** Even when packets are lost, data can be efficiently recovered using erasure coding and retransmission mechanisms, ensuring data integrity.  
+4. **Bandwidth Savings:** Each node processes only the minimum required data without duplication, efficiently using network bandwidth.
 
-## **고처리량 구조에서 터빈(Turbine)의 역할**
+## **Turbine's Role in High-Throughput Architecture**
 
-* **빠른 블록 배포(Fast Block Propagation)**로 글로벌 검증자 간 신속한 블록 검증이 가능합니다.
-* 새로운 리더로의 **빠른 리더 전환(Quick Leader Transition)**을 지원해, 다음 슬롯의 리더가 효율적으로 데이터를 수신할 수 있게 합니다.
+* **Fast block distribution** enables quick block verification among global validators.  
+* Supports **rapid leader transition**, allowing the next slot's leader to efficiently receive data.
 
-결론적으로 터빈은 솔라나가 높은 성능과 확장성을 갖춘 블록체인으로 작동할 수 있도록 핵심적인 역할을 수행합니다.
+In conclusion, Turbine plays an essential role in enabling Solana to function as a high-performance and scalable blockchain.
 
-## **2.5 트랜잭션 검증 장치(TVU)를 이용한 검증**
+## **2.5 Transaction Validation Unit (TVU)**
+
+**![][image10]**
+
+After blocks are propagated through Turbine, the **Transaction Validation Unit (TVU)** verifies the accuracy of the blocks through the following procedures:
+
+1. **Shred Reconstruction**: Blocks are split into data fragments called shreds for network propagation. The TVU combines these fragments to restore the original block.  
+2. **State Verification**: Verifies that the information in the reconstructed block (account balances, smart contract states, etc.) is correct and consistent with the previous state.  
+3. **Execution Replay**: Independently re-executes the transactions included in the block to confirm that the results match the results recorded in the block.  
+4. **Voting Mechanism**: Uses the **Tower BFT** mechanism to vote on validated blocks, cryptographically signs them, and participates in network consensus.
+
+Through these validation steps, the TVU ensures the accuracy and consistency of each block, maintaining the integrity of the ledger.
+
+## **2.6 Consensus: Voting & Fork Resolution**
+
+Solana achieves **fast finality** through **Proof of Stake (PoS)** and **Tower BFT**:
+
+**1\. Tower BFT & Block Finalization**
+
+* **PoS-based:** Tower BFT is Solana's consensus algorithm, where validators receive voting power proportional to their staked amount.  
+* A block is finalized when more than 66% of the network stake agrees (supermajority).  
+* **Lockout mechanism:** This mechanism restricts validators from voting on different forks for a certain period after voting for a specific block, limiting validators' ability to change fork choices and increasing network stability. This lockout **gets longer with each subsequent vote**, preventing validators from easily changing forks and naturally guiding the network to **converge on a single chain**.
+
+## **Tower BFT & Block Finalization Process**
+
+1. **Validators propose or vote on blocks for each slot according to the predetermined leader schedule.**  
+    In Solana, block producers (leaders) are predetermined through PoH (Proof of History), and the designated leader generates a block in their slot.
+
+2. **Validators judge whether newly created blocks are valid and send votes for that slot.**  
+    These votes are recorded on the Solana blockchain as transactions, serving as validators' trust records.
+
+3. **With each vote, the 'lockout' period for previous slots is extended.**  
+    When a validator votes for a specific slot, a restriction is created that prevents voting on other forks for a certain number of slots. The lockout doubles with each subsequent vote, making it increasingly difficult to switch forks.
+
+4. **As votes accumulate, more than 66% of the total network stake supports a specific block, and that block is finalized.**  
+    This stake-based voting prevents chain forking and stably converges to a single chain.
+
+5. **Validators can only vote on the next slot if the blocks they previously voted for are included in the new chain.**  
+    If not included, the vote is rejected due to lockout violation, and the validator cannot follow that chain. This strongly maintains network finality.
+
+**2\. Fork Handling & Chain Selection**
 
 **![][image11]**
 
-터빈(Turbine)을 통해 블록이 전파되면, **트랜잭션 검증 장치(Transaction Validation Unit, TVU)** 가 블록의 정확성을 다음과 같은 절차로 검증합니다.
+* When conflicting blocks are proposed, the blockchain can branch into multiple forks.  
+* Validators select the heaviest chain based on **PoH timestamps** (selecting the oldest fork based on the time information recorded in each block) and **stake-weighted voting** (giving higher weight to votes from validators with more stake).  
+* Unselected forks are discarded, and transactions included only in rejected forks must be resubmitted.
 
-1. **슈레드 재구성(Shred Reconstruction)**: 블록은 슈레드라는 데이터 조각으로 분할되어 네트워크에 전파되며, TVU는 이 조각들을 조합하여 원본 블록을 복원합니다.
-2. **상태 검증(State Verification)**: 복원된 블록의 계정 잔액, 스마트 컨트랙트 상태, 이전 상태와의 일관성을 검증합니다.
-3. **실행 재현(Execution Replay)**: 트랜잭션을 독립적으로 다시 실행(replay)하여 결과값이 블록에 기록된 결과와 일치하는지 확인합니다.
-4. **투표 메커니즘(Voting Mechanism)**: 검증된 블록을 **Tower BFT** 합의 메커니즘을 통해 투표하고, 암호학적으로 서명하여 네트워크 합의에 참여합니다.
+By combining Proof of Stake with Tower BFT, Solana allows **honest validator networks to quickly finalize blocks**, consistently maintaining high throughput.
 
-이러한 검증 단계를 통해 TVU는 각 블록의 정확성과 일관성을 보장하여 원장(ledger)의 무결성을 유지합니다.
+# **3\. Reasons for Dropped Transactions**
 
-## **2.6 합의(Consensus): 투표(Voting) 및 포크(Fork) 해결**
+The main reasons why transactions in Solana fail or get dropped (excluding custom program errors or incorrect instructions) are:
 
-솔라나는 **지분 증명(PoS)** 과 **Tower BFT** 를 통해 **빠른 최종 확정성(fast finality)** 을 달성합니다:
+**1\. Network Drops**
 
-**1\. Tower BFT 및 블록 최종 확정(Finalization)**
+* Transactions can be dropped due to UDP packet loss or network congestion.  
+* Under heavy load, validators might exceed their transaction forwarding limits (10,000 per second). Transactions exceeding this limit are not forwarded to other validators and are dropped.
 
-* **지분 증명(PoS) 기반:** Tower BFT는 솔라나 블록체인의 합의 알고리즘으로, 검증자(Validator)들은 스테이킹한 지분량에 비례하여 블록에 대한 투표권을 얻습니다.
-* 네트워크 지분의 66% 이상(supermajority)이 동의하면 블록이 최종 확정됩니다.
-* **락아웃(lockouts) 메커니즘:** 특정 블록에 투표한 후 일정 기간 다른 포크의 블록에 투표할 수 없도록 제한하는 메커니즘으로, 검증자의 포크 선택 변경을 제한하여 네트워크 안정성을 높입니다.
+**2\. Stale or Incorrect Blockhash**
 
-**2\. 포크 처리 및 체인 선택(Fork Handling & Chain Selection)**
+* Transactions include a **recent blockhash** to timestamp (record when the transaction was created) and determine processing order.  
+* Validators reject transactions if the provided blockhash is invalid or doesn't match the current state.
 
-**![][image12]**
+**3\. Expired Blockhash**
 
-* 경쟁하는 블록이 제안되면 블록체인이 여러 갈래(포크)로 분기될 수 있습니다.
-* 검증자는 **PoH(Proof of History) 타임스탬프**(각 블록에 기록된 시간 정보를 기준으로 가장 오래된 포크 선택)와 **지분 가중 투표**(stake-weighted voting, 지분이 많은 검증자의 투표에 더 높은 가중치 부여)를 통해 가장 무거운(heavy) 체인을 선택합니다.
-* 선택되지 않은 포크는 폐기되며, 해당 포크에만 포함된 트랜잭션은 다시 제출되어야 합니다.
+* Blockhashes expire after approximately **151 slots** (about 1 minute 19 seconds).  
+* Transactions referencing expired blockhashes are automatically rejected by validators.
 
-솔라나는 지분 증명과 Tower BFT를 결합하여 **검증자 네트워크가 빠르게 블록을 확정**함으로써 높은 처리량(throughput)을 지속적으로 유지합니다.
+**4\. Lagging RPC Nodes**
 
-# **3\. 트랜잭션 드롭(Drop)의 원인**
+* RPC node pools might be temporarily out of sync with the latest state.  
+* Transactions using blockhashes obtained from up-to-date nodes may be rejected if sent to lagging nodes.
 
-솔라나에서 트랜잭션이 실패하거나 드롭(사용자 지정 프로그램 에러나 잘못된 명령어 제외)되는 주요 원인은 다음과 같습니다:
+**5\. Temporary Network Forks**
 
-**1\. 네트워크 드롭(Network Drops)**
+* Temporary forks can occur due to slow validators.  
+* Transactions using blockhashes from a fork recognized by only a few validators may be dropped when the network selects a different fork.
 
-* UDP 패킷 손실 또는 네트워크 혼잡으로 인해 트랜잭션이 드롭될 수 있습니다.
-* 네트워크 부하가 과도할 경우, 검증자는 트랜잭션 전달 한계(초당 10,000개)를 초과할 수 있으며, 이 한계를 초과한 트랜잭션은 다른 검증자에게 전달되지 않고 드롭됩니다.
+Understanding these scenarios helps diagnose and resolve transaction issues in the Solana network.
 
-**2\. 오래되었거나 잘못된 블록해시(Stale or Incorrect Blockhash)**
+## **Workarounds**
 
-* 트랜잭션은 타임스탬프 기능과 순서 지정을 위해 **최근 블록해시**를 포함합니다.
-* 검증자는 제공된 블록해시가 유효하지 않거나 현재 상태와 일치하지 않으면 해당 트랜잭션을 거부합니다.
+**1\. Resubmit Transactions**
 
-**3\. 만료된 블록해시(Expired Blockhash)**
+* Strategically resubmitting transactions can increase their chances of being included in a block.
 
-* 블록해시는 약 **151 슬롯(약 1분 19초)** 이후에 만료됩니다.
-* 만료된 블록해시를 참조하는 트랜잭션은 검증자에 의해 자동으로 거부됩니다.
+**2\. Stake-Weighted Quality of Service (SWQoS)**
 
-**4\. 지연된 RPC 노드(Lagging RPC Nodes)**
+* Using staked RPC connections (e.g., **Helius**, **Triton**) can process transactions with higher priority and success rates.
 
-* RPC 노드 풀(pool)이 일시적으로 최신 상태와 동기화되지 않을 수 있습니다.
-* 최신 상태의 노드에서 가져온 블록해시를 사용하는 트랜잭션이 지연된 노드로 전송되면 거부될 수 있습니다.
+**3\. Jito**
 
-**5\. 임시 네트워크 포크(Temporary Network Forks)**
+* Utilizing the Jito Block Engine and paying appropriate Jito tips not only prioritizes transaction processing but also provides MEV protection, prevents transaction cancellation, and ensures optimized transaction processing through bundling in the Solana network.
 
-* 일부 검증자의 지연으로 인해 임시 포크(fork)가 발생할 수 있습니다.
-* 소수의 검증자만 인식하는 포크에서 가져온 블록해시를 사용한 트랜잭션은 네트워크가 다른 포크를 선택할 때 드롭될 수 있습니다.
+**4\. Jito Alternatives**
 
-이러한 시나리오를 이해하는 것은 솔라나 네트워크에서 트랜잭션 문제를 진단하고 해결하는 데 필수적입니다.
-
-## **해결 방법(Workarounds)**
-
-**1\. 트랜잭션 재전송(Resubmit Transactions)**
-
-* 트랜잭션을 전략적으로 재전송하여 블록에 포함될 확률을 높일 수 있습니다.
-
-**2\. 지분 가중 서비스 품질(SWQoS)**
-
-* 지분이 있는(Staked) RPC 연결(예: **Helius**, **Triton**)을 이용하면 더 높은 우선순위와 성공률로 트랜잭션을 처리할 수 있습니다.
-
-**3\. Jito MEV 인프라**
-
-* Jito Block Engine을 활용하고 적절한 Jito 팁(tips)을 지불하면, 트랜잭션이 우선적으로 처리될 뿐 아니라 MEV 보호, 번들링(bundle) 처리, 원자적 실행 보장 등을 통해 솔라나 네트워크에서 최적화된 트랜잭션 처리를 보장할 수 있습니다.
-
-**4\. 대체 MEV 인프라(Alternative MEV Infrastructure)**
-
-* 블록체인에서 빠르게 데이터를 전송하도록 네트워크를 최적화한 전문 서비스(예: **bloXroute**, **Temporal/Nozomi**, **NextBlock**)를 이용하여 트랜잭션 처리 효율성을 높일 수 있습니다.
+* You can modify Jito to use your own clients or use services that have optimized the network to transmit data quickly on the blockchain (e.g., **bloXroute**, **Temporal/Nozomi**, **NextBlock**).
 
 # **4\. Jito**
 
-Jito는 솔라나(Solana) 블록체인의 **검증자 클라이언트의 확장 버전**으로, **최대 추출 가능 가치(Maximal Extractable Value, MEV)** 를 효과적으로 포착하고 공정하게 분배하기 위해 개발된 인프라입니다. Jito는 솔라나의 표준 검증자에 특화된 온체인 및 오프체인 컴포넌트를 추가하여 수익성을 향상시키고, 블록 공간을 최적화하며, MEV 수익을 검증자와 스테이커(staker) 간 공정하게 분배합니다.
+Jito is a **modified version of the Solana validator client**, developed to effectively capture and fairly distribute **Maximal Extractable Value (MEV)**. MEV refers to **additional profits that validators can earn by adjusting or selecting the order of transactions**. Jito enhances Solana's standard validator by adding specialized on-chain and off-chain components to improve profitability, optimize block space, and fairly redistribute MEV profits between validators and stakers.
 
-Jito의 주요 구성요소는 다음과 같습니다:
+Jito's main components are:
 
-* **오프체인 컴포넌트(Off-chain components)**: Relayer, Block Engine  
-* **온체인 프로그램(On-chain programs)**: Tip Payment Program, Tip Distribution Program  
-* **특화된 검증자 파이프라인**: BundleStage
+* **Off-chain components**: Relayer, Block Engine  
+* **On-chain programs**: Tip Payment Program, Tip Distribution Program  
+* Specialized validator pipeline (**BundleStage**)
 
-## **주요 컴포넌트 및 아키텍처**
+## **Key Components and Architecture**
 
-**1\. Jito-Solana 검증자**
+**1\. Jito-Solana** Validator
 
-* MEV 번들 처리를 위한 특화된 파이프라인 구현: **RelayerStage**, **BlockEngineStage**, **BundleStage**
-* 번들의 검증, 시뮬레이션, 원자적(atomic) 실행을 담당합니다.
+* Runs additional stages to handle MEV bundles: **RelayerStage**, **BlockEngineStage**, **BundleStage.**  
+* Responsible for validating, simulating, and atomically executing bundles.
 
 **2\. Relayer**
 
-* 트랜잭션 진입점으로서 게이트웨이 역할을 수행합니다.
-* MEV 번들 형성을 위해 트랜잭션을 약 200ms 동안 버퍼링합니다.
-* gRPC 프로토콜을 통해 통신하여 병목 현상을 방지하고 효율적인 부하 분산을 제공합니다.
+* Acts as a transaction entry point gateway.  
+* Delays transactions by about 200ms for MEV bundle formation.  
+* Communicates via gRPC protocol to prevent bottlenecks and support smooth load balancing.
 
 **3\. Block Engine**
 
-* MEV 번들 처리의 핵심 의사 결정 레이어입니다.
-* MEV 서처(searcher)와 트레이더로부터 트랜잭션 및 번들을 수신합니다.
-* 오프체인에서 번들을 시뮬레이션하여 수익성(팁 크기와 컴퓨팅 효율성 기준)에 따라 우선순위를 결정합니다.
-* 최적의 번들을 선택하여 검증자에게 원자적으로 전달합니다.
+* Core decision-making layer for MEV bundle processing.  
+* Receives transactions and bundles from searchers/traders.  
+* **Simulates bundles off-chain, prioritizing them based on profitability (tips and computing efficiency).**  
+* Selects the optimal bundles to atomically forward to validators.
 
-**4\. BundleStage (검증자 파이프라인)**
+**4\. BundleStage (Validator Pipeline)**
 
-* 번들 내 모든 트랜잭션이 함께 성공하거나 실패하는 원자성(atomicity)을 보장합니다.
-* 번들 내 트랜잭션의 엄격한 순차적 실행을 보장합니다.
-* 번들과 관련된 계정을 락(lock)하여 다른 트랜잭션과의 충돌을 방지합니다.
-* 표준 BankingStage와 통합되어 검증자의 트랜잭션 처리 파이프라인에 직접 연결됩니다.
+* Ensures atomic execution of bundles – all transactions within a bundle either succeed together or fail together.  
+* Guarantees strict sequential execution of transactions within bundles.  
+* Locks accounts associated with a bundle to prevent conflicts with other transactions.  
+* Integrates directly into the validator's transaction processing pipeline alongside the standard BankingStage.
 
 **5\. Tip Payment Program (On-chain)**
 
-* MEV 팁을 보관하는 일종의 “저금통” 역할을 합니다.  
-* 서처는 팁(추가 lamport)을 사전에 정해진 PDA(프로그램 유도 계정, Program-Derived Accounts)에 예치합니다.  
-* 팁의 안전한 관리 및 추적을 용이하게 합니다.
+* Serves as a kind of "piggy bank" for storing MEV tips.  
+* Searchers deposit tips (additional lamports) into predetermined PDAs (Program-Derived Accounts).  
+* Facilitates the secure management and tracking of tips.
 
 **6\. Tip Distribution Program (On-chain)**
 
-* 스테이킹 비율에 따라 MEV 팁을 검증자와 스테이커에게 공정하게 분배합니다.  
-* 각 에포크(epoch) 종료 시 머클 증명(Merkle proofs)을 사용하여 팁 분배를 검증 및 실행합니다.
+* Distributes MEV tips to validators and stakers according to stake ratio.  
+* Every epoch, tip rewards are distributed according to a validator reward list organized as a Merkle tree, with each validator proving their reward information is included in the list through a Merkle proof. Here, Merkle proof is a lightweight verification method proving that a validator's reward information is included in the Merkle tree.
 
-## **상세한 트랜잭션 흐름**
+## **Detailed Transaction Flow**
 
-**1\. 트랜잭션 제출 및 Relayer 버퍼링**
+**1\. Transaction Submission & Relayer Delay**
 
-* 사용자의 트랜잭션이 **Relayer**를 통해 입력되고, MEV 번들 형성을 위해 약 200ms 동안 버퍼링됩니다.
+* User transactions enter through the **Relayer** and are held for about 200ms to form MEV bundles.
 
-**2\. 번들 형성 및 시뮬레이션**
+**2\. Bundle Formation & Simulation**
 
-* MEV 서처(searcher)가 최대 5개 트랜잭션을 묶은 번들을 **Block Engine**에 제출합니다.
-* Block Engine은 오프체인에서 번들을 신속하게 시뮬레이션하여 수익성과 실행 가능성을 분석합니다.
+* MEV searchers submit bundles (up to 5 transactions) to the **Block Engine.**  
+* The Block Engine quickly simulates these bundles off-chain to analyze their profitability and feasibility.
 
-**3\. 번들 경매(Bundle Auction)**
+**3\. Bundle Auction**
 
-* Block Engine은 200ms마다 경매를 실시합니다.
-* 번들의 우선순위는 두 가지 기준으로 결정됩니다: **제공된 팁(tip)의 크기**와 **컴퓨팅 유닛 당 효율성**.
-* 동일한 계정에 액세스하는 번들은 함께 경매되고, 충돌이 없는 번들은 병렬 경매로 처리됩니다.
+* The Block Engine conducts auctions every 200ms.  
+* Bundles are prioritized based on two criteria: **size of the provided tip** and **computing efficiency (Tip per CU ratio)**.  
+* Bundles with conflicting accounts are auctioned together, while non-conflicting bundles are processed in parallel auctions.
 
-**4\. 검증자 실행(Validator Execution)**
+**4\. Validator Execution**
 
-* 경매에서 선정된 번들은 검증자의 **BlockEngineStage**로 전송된 후 **BundleStage 파이프라인**으로 이동합니다.
-* 번들 내 트랜잭션은 지정된 순서대로 원자적으로 실행됩니다.
-* 실행 과정 동안 관련 계정은 락(lock)되어 다른 트랜잭션의 액세스를 방지합니다.
+* Selected bundles from the auction are sent to the validator's **BlockEngineStage** and then move to the **BundleStage pipeline**.  
+* Transactions within a bundle are executed atomically in a strict order.  
+* Related accounts are locked until execution is completed, making simultaneous changes impossible.
 
-**5\. 팁 수집(Tip Collection)**
+**5\. Tip Collection**
 
-* 실행된 번들의 팁(tip)이 **Tip Payment Program**에서 관리하는 PDA에 안전하게 저장됩니다.
+* Tips from executed bundles are deposited in PDAs managed by the **Tip Payment Program**.
 
-**6\. 블록 생성 및 전파(Block Building)**
+**6\. Block Creation and Broadcast**
 
-* 검증자는 MEV 번들과 일반 트랜잭션을 통합하여 블록을 구성합니다.
-* 슬롯 시간의 초반 80%는 MEV 번들을 위한 공간이 우선 할당되며, 번들이 부족하면 남은 슬롯 시간은 일반 트랜잭션에 할당됩니다.
-* 최종 완성된 블록은 솔라나 네트워크에 전파됩니다.
+* The validator combines MEV bundles and regular transactions to construct a block.  
+* The first 80% of the slot time prioritizes space for MEV bundles; if bundles are insufficient, the remaining slot time is allocated to regular transactions.  
+* The finalized block is propagated to the network.
 
-## **원자성(Atomicity) 및 번들 제약**
+## **Atomicity and Bundle Constraints**
 
-* 번들은 모든 트랜잭션이 함께 성공하거나 함께 실패하는 원자성을 보장해야 합니다.
-* 번들은 단일 슬롯에서만 실행 가능하며, 컴퓨팅 유닛 한도 및 QoS 제약을 준수해야 합니다.
-* 합의 메커니즘에 필수적인 계정(투표 계정, 게이트키 등)과의 충돌이 금지됩니다.
+* Bundles must ensure atomicity where all transactions either succeed together or fail together.  
+* Bundles cannot span multiple slots and must comply with cost and QoS constraints.  
+* Conflicts with accounts essential to the consensus mechanism (such as voting accounts) are prohibited.
 
-## **팁 지급 및 분배 메커니즘**
+## **Tip Payment and Distribution Mechanism**
 
-**현재 모델(중앙집중형)**
+**Current Model (Centralized)**
 
-* 각 에포크에서 수집된 MEV 팁은 **팁 분배 계정(Tip Distribution Account, TDA)**에 집계됩니다.
-* 팁 분배는 중앙에서 계산된 머클 루트(Merkle root)를 통해 관리되며, 스테이커는 이를 통해 보상을 청구합니다.
+* MEV tips collected during each epoch are aggregated in the **Tip Distribution Account (TDA)**.  
+* Tip distribution is managed through a centrally calculated Merkle root, and stakers claim rewards through it.
 
-**미래 모델(분산형: Tip Rewards NCN)**
+**Future Model (Decentralized: Tip Rewards NCN)**
 
-* 각 노드가 독립적으로 머클 루트를 계산하고 결과에 투표합니다.
-* 네트워크 노드 2/3 이상의 합의가 이루어지면 팁 분배가 확정됩니다.
-* 프로토콜 발전을 위한 DAO와 NCN 운영자를 위한 자동 공제(3%)가 포함됩니다.
-* 분산화, 투명성, 보안성이 크게 개선됩니다.
+* Nodes independently calculate and vote on the Merkle root.  
+* Tip distribution is finalized when 2/3 of nodes reach consensus.  
+* Automatic deductions (3%) for the DAO and NCN operators are included.  
+* Decentralization, transparency, and security are enhanced.
 
-**결론 및 영향**
+**Conclusion & Impact**
 
-* Jito는 현재 솔라나 수수료 수익의 약 2/3를 차지할 정도로 중요한 역할을 하고 있습니다.
-* 솔라나 적극활성화(active stake)의 90% 이상이 Jito 클라이언트를 사용하며, 검증자 생태계와 네트워크 안정성에 핵심적인 역할을 하고 있습니다.
-* Jito의 아키텍처(리레이어, 블록 엔진, 번들 스테이지, 팁 관리 프로그램 등)를 이해하는 것은 솔라나 생태계의 퍼포먼스와 거버넌스를 이해하는 데 필수적입니다.
+* Jito has become an important component of Solana, accounting for about 2/3 of fee revenue.  
+* Over 90% of Solana's active stake uses Jito, playing a vital role in validator economics and network stability.  
+* Understanding Jito's structure (Relayer, Block Engine, Bundle Stage, Tip management programs) is essential to understanding Solana's ecosystem.
 
-# **5\. 옐로스톤 가이저(Yellowstone Geyser) & 실시간 데이터 스트리밍**
+# **5\. Yellowstone Geyser & Real-Time Data Streaming**
 
-## **옐로스톤 가이저의 작동 원리**
+## **How Yellowstone Geyser Works**
 
-* 검증자가 트랜잭션을 처리하고 계정 상태를 업데이트하면, 가이저(Geyser) 플러그인은 이러한 이벤트(토큰 전송, 스마트 컨트랙트 로그, 슬롯 완료 등)를 실시간으로 캡처합니다.  
-* 이벤트는 드래곤스 마우스(Dragon’s Mouth) gRPC 인터페이스를 통해 외부 구독자에게 구조화된 데이터 스트림으로 전송됩니다.  
-* 클라이언트는 특정 계정, 프로그램 또는 이벤트 타입에 대한 필터를 설정하여 필요한 데이터만 선택적으로 수신함으로써 네트워크 대역폭을 최적화할 수 있습니다.
+* When validators process transactions and update account states, Geyser captures these events (e.g., token transfers, smart contract logs, slot completions) in near real-time.  
+* Events are streamed to external subscribers through the Dragon's Mouth gRPC interface as granular data feeds.  
+* Clients can set filters to receive updates only for specific accounts or programs, minimizing bandwidth usage.
 
-## **개발자 및 dApp을 위한 이점**
+## **Benefits for Developers & dApps**
 
-* **실시간 데이터 처리**: DeFi 프로토콜, NFT 마켓플레이스, 트레이딩 서비스가 리얼타임 온체인 데이터에 접근할 수 있습니다.
-* **선택적 구독**: 필요한 트랜잭션과 이벤트만 정확하게 필터링하여 수신할 수 있습니다.
-* **자원 효율성**: 필요한 데이터만 스트리밍하여 인프라 비용과 시스템 리소스를 효율적으로 관리할 수 있습니다.
+* **Real-Time Analytics**: DeFi, NFT, and trading platforms can access immediate data.  
+* **Event Filtering**: Subscribe only to relevant transactions.  
+* **Lower Infrastructure Costs**: Minimize overhead by streaming only necessary data.
 
-# **6\. 결론**
+# **6\. Conclusion**
 
-Solana의 **트랜잭션 라이프사이클**은 **사용자 → 걸프 스트림(Gulf Stream) → 블록 생성 → PoH → 터빈(Turbine) → 블록 검증 및 합의**로 이어지는 혁신적인 구성 요소들을 통해 **고속, 고처리량** 블록 생성을 실현합니다. Solana는 **메모리풀(mempool)을 제거**하고, **스테이크 가중 우선순위(stake-weighted prioritization)**를 적용하며, **실시간 데이터 활용** 을 통해 지연 시간, 혼잡, 병목 현상을 최소화합니다.
+Solana's **transaction lifecycle** leverages innovative components — **Users → Gulf Stream → Block Production → PoH → Turbine → Block Verification & Consensus** — to enable **high-speed, high-throughput** block creation. By **eliminating mempools**, implementing **stake-weighted prioritization**, and utilizing **real-time data**, Solana minimizes latency, congestion, and bottlenecks.
 
-**옐로스톤 가이저(Yellowstone Geyser)**를 활용한 트랜잭션 스트리밍과 **SWQoS**, **Jito**, 또는 **Jito 대안 솔루션**을 통한 적절한 수수료 및 팁을 설정하면 사용자는 시장 기회를 빠르게 포착할 수 있습니다. 또한, **옐로스톤 가이저 노드까지의 거리**와 **SWQoS 및 Jito 서비스와의 인터넷 지연 시간**은 트랜잭션 속도와 실행 효율성에 큰 영향을 미치므로, 트레이더와 dApp 개발자에게 **네트워크 토폴로지** 가 중요한 요소가 됩니다.
+By utilizing **Yellowstone Geyser** for transaction streaming and setting appropriate fees and tips via **SWQoS**, **Jito**, or **Jito alternatives**, users can quickly capitalize on market opportunities. Additionally, **distance to the Yellowstone Geyser node** and **internet latency to SWQoS and Jito services** significantly impact transaction speed and execution efficiency, making **network topology** a critical consideration for traders and dApp developers.
 
-올해 예정된 여러 가지 업데이트는 Solana의 성능과 사용자 경험을 더욱 향상시킬 것입니다. **Agave의 대규모 업그레이드**는 Greedy Scheduler 도입, CU 제한, 터빈 개선 등을 통해 네트워크 처리 효율과 속도를 획기적으로 높일 예정입니다. 또한 Q4에 도입될 예정인 **신형 합의 알고리즘** 은 체인 파이널리티를 크게 단축시켜 거래 체결 속도를 더욱 빠르게 만들어 줄 것으로 기대됩니다.
+Several upcoming updates this year will further enhance Solana's performance and user experience. **Agave's major upgrade** will dramatically improve network processing efficiency and speed through the introduction of the Greedy Scheduler, CU limits, Turbine improvements, and more. Additionally, the **new consensus algorithm** scheduled for Q4 is expected to significantly reduce chain finality time, further accelerating transaction settlement.
 
-점프크립토가 준비 중인 **Firedancer 클라이언트**는 초당 최대 100만 건의 트랜잭션(TPS)을 처리하며 Solana의 성능을 획기적으로 높일 예정이며, 전담 고성능 네트워크 계층인 **Doublezero**의 도입으로 거래 처리량이 증가하고 지연 시간과 지터가 감소하여 밸리데이터 성능이 향상될 것입니다. 더불어 **APE(Asynchronous Program Execution)**는 프로그램 실행을 비동기로 처리하여 네트워크의 트랜잭션 병목 현상을 해소할 것이며, 4월 예정된 **Passkeys 네이티브 지원** 을 통해 비밀번호 없이 지문이나 페이스 ID로 웹3 로그인 UX가 대폭 개선될 것입니다.
+Jump Crypto's upcoming **Firedancer client** aims to process up to **1 million transactions per second (TPS)**, significantly enhancing Solana's performance, while the introduction of **Doublezero**, a dedicated high-performance networking layer, will increase transaction throughput and reduce latency and jitter, improving validator performance. Furthermore, **Asynchronous Program Execution (APE)** will alleviate network transaction bottlenecks by processing program execution asynchronously, and **native support for Passkeys** scheduled for April will greatly improve the Web3 login UX through password-free authentication using fingerprint or Face ID.
 
-이러한 지속적인 혁신과 최적화를 통해 Solana는 빠르고 확장 가능한 애플리케이션 개발을 위한 선도적인 블록체인으로 자리매김하며, 탈중앙화 시스템을 위한 최상급 인프라로서 Web3의 새로운 표준을 제시할 것입니다.
+Through continuous innovation and optimization, Solana is establishing itself as a leading blockchain for fast and scalable application development, setting new standards for Web3 as a premier infrastructure for decentralized systems.
