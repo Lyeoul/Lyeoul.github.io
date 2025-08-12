@@ -1,461 +1,159 @@
-# Solana Transaction
+# DLP 3D Stereolithography: Volumetric Printing 기술의 현재와 미래
 
-This article by Blockchain at Yonsei analyzes Solana's transaction mechanism in 6 stages based on Helius's Solana report.  
-Helius Solana Report: https://report.helius.dev
+## 초록
 
-**1\. Introduction**
+Volumetric 3D printing은 센티미터 스케일의 물체를 수 초 만에 제작할 수 있는 혁신적인 적층 제조 기술로, 지난 7년간 급속한 발전을 이루며 전통적인 층별 제조 방식의 한계를 극복하고 있다. 본 논문은 DLP(Digital Light Processing) 기반 volumetric printing 기술의 핵심 원리와 최신 연구 동향을 분석하고, 특히 holography-based 방법, computational tomography-based 방법, xolography, roll-to-roll based 제조, 그리고 dynamic interface printing 기술의 발전 방향을 제시한다. 이러한 기술들은 광학 및 음향 필드를 이용하여 재료 내부에서 직접적으로 3차원 화학 반응을 유도함으로써, 기존의 층별 적층 방식 대비 획기적인 속도 향상과 설계 자유도를 실현하고 있다. 본 연구는 volumetric printing 기술의 산업화를 위한 재료 화학 및 공정 엔지니어링 분야의 핵심 과제와 연구 방향을 제시함으로써, 이 기술이 초기 단계를 넘어 광범위한 적용 단계로 발전할 수 있는 로드맵을 제공한다.
 
-Solana is a **high-performance, high-throughput blockchain** capable of processing thousands of transactions per second (TPS). Unlike traditional blockchains with slow processing speeds and high fees, Solana provides **extremely fast transaction processing and low fees**.
+## 서론
 
-One of the main factors slowing down traditional blockchains is the **mempool**, a 'transaction waiting room'. Solana has completely eliminated this mempool and introduced a more efficient network protocol to maximize speed and efficiency.
+### 층별 제조에서 무층 제조로의 패러다임 전환
 
-This article explains Solana's **transaction processing workflow** using **Helius's** 6-stage framework, detailing how transactions are **captured, prioritized, and transmitted**.
+3D printing 기술은 지난 40년간 layer-by-layer fabrication 원리에 기반하여 발전해왔다. Fused deposition modeling, selective laser sintering, stereolithographic methods 등의 전통적인 적층 제조 기술들은 단일 voxel, 선, 또는 면 단위로 재료를 순차적으로 적층하여 2차원 패턴을 형성하고, 이를 반복적으로 쌓아 올려 3차원 구조체를 제작한다. 하지만 이러한 방식은 근본적으로 느린 생산 속도(수 입방센티미터 부품 제작에 수 시간 소요), 제한적인 재료 선택권, 그리고 복잡한 형상 제작을 위한 지지 구조물 의존성 등의 한계를 가지고 있다.
 
-# **2\. Six Stages of Solana's Transaction Lifecycle**
+Volumetric printing, 또는 volumetric additive manufacturing(VAM)은 이러한 전통적 제조 방식의 한계를 극복하는 새로운 제조 패러다임이다. 이 기술은 층별 제조 없이 전체 부품을 한 번에 제작할 수 있으며, 가장 빠른 기술의 경우 수십 마이크로미터 해상도로 입방센티미터 부품을 10초 이내에 제작할 수 있다. Volumetric printing의 핵심은 field-based manufacturing 개념으로, 센티미터 스케일의 거리에서도 작동할 수 있는 복잡하고 불균질한 물리적 필드(주로 광학 및 음향 필드)를 재료 내부로 방사하여 공간적으로 해석된 에너지 도즈 분포를 생성하고, 이를 통해 제어된 화학 반응을 유도하여 원하는 객체를 형성한다.
 
-**![][image1]**
+### Field-based Volumetric Manufacturing 기술의 분류
 
-## **2.1 Users & Transaction Submission**
+Volumetric printing 기술은 사용하는 물리적 필드의 종류에 따라 크게 광학 기반 방법과 음향 기반 방법으로 분류할 수 있다. 광학 기반 방법들은 photochemical reaction에 대한 풍부한 문헌과 stereolithographic printing에서 축적된 light-responsive materials에 대한 경험을 바탕으로 먼저 발전했다. 파장, 강도, 공간 분포 등의 광학 매개변수를 제어함으로써 재료 내부 깊숙한 곳에서도 시공간적으로 해석된 photochemical reaction을 유도할 수 있다.
 
-Solana transactions start with **users**, who generate and sign them using wallets or applications. In this process, users interact with **Solana's RPC (Remote Procedure Call) nodes**. RPC nodes act as intermediary servers that bridge communication between users and the Solana blockchain. When users perform activities like creating transactions through wallets or applications, these nodes receive the requests, forward them to the blockchain network, and return the results back to users.
+## Holography-based Volumetric Printing 기술
 
-## **How Transactions Are Created**
+### 홀로그래피 원리의 적용
 
-**![][image2]**
+Holography-based volumetric printing은 홀로그래피의 기본 원리를 3D 제조에 적용한 혁신적인 기술이다. 이 방법은 복잡한 3차원 광학 패턴을 생성하기 위해 홀로그래픽 투사를 활용하며, 특히 음향 기반 시스템에서 주목할 만한 발전을 보이고 있다. Holographic direct sound printing(HDSP)은 3D 프린팅된 acoustic holographic phase plate를 초음파 변환기 위에 배치하여, 초음파 파면을 임의의 초점으로 성형하는 데 필요한 위상 정보를 인코딩한다.
 
-Users sign transactions with their **Ed25519 private keys**.
+### 음향 홀로그래피의 구현
 
-Each transaction includes:
+음향 홀로그래피 시스템에서는 holographic phase plate가 목표 기하학적 형상의 단면에 해당하는 임의의 초점을 생성하도록 초음파 파면을 성형한다. 이 접근 방식의 주요 장점은 여러 영역을 동시에 중합할 수 있어 single shot으로 원하는 객체를 형성할 수 있다는 점이다. 하지만 3D 프린팅된 phase plate는 변조가 불가능하므로, 초점 평면에서의 강도 패턴이 고정되어 있어 더 복잡한 3D 구조체는 이 평면의 translation을 통해서만 제작할 수 있다는 한계가 있다.
 
-* **Header**: Specifies which accounts (signers) must sign the transaction.  
-* **Account Addresses**: Lists the accounts that will be read from or modified by the transaction.  
-* **Recent Blockhash**: Includes the hash of a recent block to prevent replay attacks (where the same transaction could be executed multiple times).  
-* **Instructions**: Calls on-chain programs to specify what actions to perform.
+### 광학 홀로그래피의 발전 방향
 
-## **Submitting Transactions via RPC Nodes**
+광학 기반 홀로그래피에서는 phase-modulation hardware가 중요한 발전을 보이고 있다. Phase-based spatial light modulator는 역사적으로 낮은 frame rate(<10 Hz)로 제한되어 왔지만, 최근 하드웨어 개선으로 two-photon printing에서 널리 채택되고 있으며, VAM에서의 적용은 아직 초기 단계에 있다. 이러한 개선은 lens를 spatial light modulator의 phase mask로 대체하여 광학 시스템을 단순화하고, printing vial이나 resin 내의 aberration을 wavefront control을 통해 보정할 수 있게 한다.
 
-* Users create transactions using a wallet or application and send them to RPC nodes. RPC nodes act as a bridge, forwarding the transactions to the Solana blockchain network.  
-* Users can pay additional **Priority Fees** to request faster processing of their transactions.  
-* RPC nodes **simulate** transactions to verify their validity before sending them to the actual network. This allows users to check whether the transaction would succeed and detect any errors in advance. (This feature is enabled by default and runs when the *skipPreflight* option is set to **false**.)
+HoloTile 기술은 phase-only spatial light modulator를 sub-hologram으로 분할하여 reconstruction plane에서 복잡한 강도 분포를 생성하는 computer-generated holographic 방법이다. 이 방법은 tomographic VAM과 light-sheet 접근법 모두에서 speckle-reduced fabrication, 높은 photon efficiency, 향상된 공간 해상도, 그리고 개선된 depth of focus 등의 여러 장점을 제공한다.
 
-## **2.2 Gulf Stream: Mempool-less Transaction Forwarding**
+### 프로그래밍 가능한 음향 홀로그래피
 
-## **What is Mempool?**
+음향 기반 printing에서는 acoustic wavefront를 동적으로 변조하는 새로운 방법을 찾기 위한 노력이 계속되고 있다. 이는 single-voxel crosslinking이나 passive holographic projection에서 대규모의 임의 기하학적 형상을 빠르게 제작할 수 있는 영역으로의 전환을 목표로 한다. Programmable acoustic holography는 가장 일반적으로 phased array를 사용하는 활발한 연구 분야이지만, 해상도, 전력, 주파수 제한의 문제가 있다. Programmable acoustic metasurface는 실시간 위상 변조를 위해 능동적으로 조정될 수 있어 잠재적인 해결책으로 여겨진다.
 
-A mempool (memory pool) is a temporary storage area in traditional blockchains (Bitcoin, Ethereum) where transactions wait before being processed. When a user initiates a transaction, it is stored in the mempool in an "unconfirmed" state until it is included in a block and confirmed. Each node maintains its own mempool, and miners/validators select transactions from their mempool to include in the next block.
+## Computational Tomography-based Volumetric Printing
 
-If transactions remain in the mempool for a long time, network congestion occurs, and users often compete by offering higher fees to get their transactions processed faster.
+### Tomographic 재구성 원리
 
-**Solana's Gulf Stream![][image3]**
+Computational tomography-based volumetric printing은 3D 의료 영상의 computed tomography에서 영감을 얻은 기술로, volumetric printing 분야에서 가장 획기적인 발전을 이룬 방법이다. Multibeam superposition과 달리, tomographic volumetric printing은 회전하는 원통형 photosensitive resin 부피에 여러 각도에서 사전 계산된 일련의 2D 광패턴을 투사하여 목표 3D 광 도즈를 재구성한다.
 
-Solana has completely eliminated this waiting room (mempool). Instead, it introduced a system called "Gulf Stream." Gulf Stream refers to the process from when a node receives a transaction on the network until it reaches the leader of the current slot and arrives at the Fetch stage of the TPU (Transaction Processing Unit).
+투사는 tomographic algorithm(Radon transform과 filtered back projection)에 따라 계산되며, LED나 laser source로 조명되는 digital micromirror device와 같은 amplitude-type spatial light modulator를 통해 전달된 후 print volume의 중심으로 영상화된다. 모든 각도에서 이러한 투사들의 누적합은 목표 기하학적 형상의 경계 내에서 최대화되는 복잡한 광 도즈의 형성을 초래하여, 원하는 영역 내에서 photopolymerization을 유도하는 반면, 반응하지 않은 재료는 공정 끝에서 씻어낸다.
 
-This system **directly sends transactions to predetermined future block producers (slot leaders)** to process transactions "without waiting," quickly and safely. This significantly reduces network congestion and transaction confirmation times.
+### 재구성 알고리즘의 발전
 
-## **Role of the Leader Node**
+Tomographic VAM에서 해상도와 정확도를 향상시키기 위해서는 reactive resin에 전달되는 물리적 필드(광 도즈나 acoustic energy의 공간적 제어를 통한)의 패터닝을 정밀하게 변조하는 재구성 알고리즘이 핵심이다. 이 문제의 학제간 특성을 고려할 때, 재료 과학자와 컴퓨터 과학자 간의 협력이 필요하다.
 
-A leader is a validator with authority to produce blocks for a specific time period (about 0.4 seconds, called a 'slot'). The leader schedule is determined in advance for 2-day units (epochs) and is shared among all validators. The leader processes transactions and creates blocks during its slot time, then passes the turn to the next leader.
+표준 filtered tomographic 접근법을 넘어서는 다양한 최적화 접근법들이 더 충실한 재구성을 달성하기 위해 사용되고 있다. Object-space optimization of tomographic reconstruction, gradient descent optimization, wave optical optimization, maximum likelihood-expectation maximization, 3D ray tracing 등의 기법들이 소프트웨어 수준에서 적용되고 있다.
 
-## **Eliminating the Mempool - Transaction Processing Method**
+### 물리학 기반 모델링의 통합
 
-* **Direct Forwarding System**: Without waiting for transactions in a mempool, Gulf Stream immediately sends transactions to the next slot's leader. This eliminates the need for validators to store large volumes of transactions long-term, reducing memory usage and effectively suppressing front-running and spam attacks.  
-* **Automatic Expiration System**: All transaction messages must include a recent blockhash, which is only valid for about 150 slots (roughly one minute). After 150 slots, the blockhash expires and expired transactions are automatically deleted from the network, preventing old data accumulation.
+최근 연구들은 photopolymerization 공정의 화학적 동역학을 다양한 세부 수준으로 모델링하고 결합하려는 시도를 하고 있으며, 이는 tomographic과 light sheet-based volumetric printing 접근법 모두에 영향을 미치고 있다. 이러한 연구들은 radical과 oxygen 확산 속도와 같은 매개변수를 조사하여 정확도와 printing 균질성을 향상시키며, global parameter조차도 계산 효율성을 희생하더라도 print fidelity를 크게 개선할 수 있음을 보여주고 있다.
 
-## **Transaction Forwarding Process (Example)**
+Resin 내의 scattering 완화를 위한 알고리즘적 접근법도 탐구되고 있다. Imaging과 Fourier domain에서의 투사에 대한 선택적 수정의 조합을 사용하거나, 물리 기반 inverse rendering 문제를 활용하거나, 임의의 scattering 또는 absorptive volume 내에서 light ray의 differentiable simulation을 사용하는 방법들이 개발되고 있다. 이러한 발전은 특히 불투명한 복합 재료와 cell-laden 재료와 호환되는 light-based VAM의 범위를 확장하는 데 중요하다.
 
-1. Solana designates future block producers according to a predetermined leader schedule.  
-2. When a user creates a transaction, it is sent to an RPC node (or validator node).  
-3. The RPC node checks the next slot leader and **directly forwards** the transaction.  
-4. The leader validates the transaction and includes it in a block.  
-5. Transactions not processed within one minute are automatically deleted.
+### 실시간 모니터링과 피드백 제어
 
-## **Transition from UDP to QUIC**
+Tomographic VAM에서 주요 도전 과제 중 하나는 실시간 모니터링과 metrology이다. 이는 print 진행 상황을 평가하고 잠재적으로 print 품질을 최적화하기 위한 동적 조정을 가능하게 하는 데 중요하다. 대부분의 경우, volume의 단순한 영상화는 중합된 영역과 중합되지 않은 영역 사이의 충분한 대비를 제공하지 못한다. 이 문제는 polymer 함량이 낮은 resin이나 scattering agent를 포함하는 resin을 다룰 때 더욱 복잡해지며, 이는 bioprinting 애플리케이션에서 흔히 발생하는 상황이다.
 
-Initially, Solana used **UDP** as its network protocol. UDP transmits data without establishing a connection between sender and receiver, offering the advantage of speed but experiencing the following issues:
+저대비 시나리오에서 이러한 문제를 해결하기 위해 shadowgraph imaging과 Schlieren imaging이 tomographic VAM과 함께 사용되고 있다. 이러한 기법들은 중합 과정의 결과로 발생하는 굴절률의 미세한 변화를 시각화할 수 있다. Schlieren imaging은 또한 tomographic imaging modality에서 활용되어 printing 과정의 3D 재구성을 생성하고 내부 굴절률의 정량적 측정을 수행할 수 있다.
 
-![][image4]
+## Xolography 기술
 
-* It is not connection-oriented and lacks flow control or packet receipt confirmation. In other words, it doesn't verify whether data arrived properly and can't adjust transmission speeds when the network is congested.  
-* There is no effective way to limit how much data someone sends or prevent/mitigate malicious behavior (Candy Machine spam attacks).
+### Dual-colour Photopolymerization의 원리
 
-After switching to **QUIC**, developed by **Google**, Solana gained the following improvements:
+Xolography는 dual-colour photopolymerization printing의 대표적인 예로, 두 개의 광학 경로를 활용하는 혁신적인 기술이다. UV light sheet가 volume을 가로질러 스위프하여 photoswitchable photoinitiator를 일시적으로 활성화하고, 동시에 직교하는 패턴된 가시광 투사가 두 빔의 겹치는 부분에서 국소적으로 중합과 가교를 유도한다. Light sheet가 volume을 스캔하면서 투사는 목표 기하학적 형상의 해당 단면으로 지속적으로 업데이트된다.
 
-* **Congestion Control**: Minimizes transaction loss.  
-* **Reliability**: Reduces packet loss, improving communication quality.  
-* **Security**: Encrypted channels lower the possibility of attacks.
+### Fast Thermal Reversible Photoswitchable Initiator
 
-The adoption of QUIC has **improved the stability and reliability of the Solana network**. However, despite these improvements, there is still ongoing discussion about how effective the QUIC implementation is in Solana.
+이 접근법의 주요 장점은 fast thermal reversible photoswitchable initiator의 사용이다. 이러한 initiator는 thermal relaxation을 통해 비반응성 상태로 되돌아간 후 out-of-plane crosslinking을 방지한다. 이러한 중합 반응의 구속은 tomographic 접근법에 비해 더 높은 도즈 대비를 가능하게 한다. 따라서 xolography는 수 마이크로미터까지의 feature size로 센티미터 스케일의 객체를 수 분 내에 생산할 수 있다.
 
-## **Stake-Weighted Quality of Service (SWQoS)**
+Xolography와 유사한 접근법인 light sheet 3D microprinting은 microscale에서 작동하며 two-step photoinitiator를 활용한다. Light sheet 생성과 수직 투사 경로 모두에 microscope objective를 사용함으로써 printable volume을 희생하여 더 높은 해상도 특징(~1μm)을 얻을 수 있으며, 이는 이 방법을 복잡한 정밀도가 요구되는 애플리케이션에 특히 적합하게 만든다.
 
-**![][image5]**
+### 광학적 구속과 해상도 향상
 
-## **How SWQoS Works on Solana**
+보다 일반적인 photoinitiator를 사용하려는 노력은 specialized photochemistry보다는 빛의 정밀한 공간적 제어에 의존하는 다른 기술들로 이어졌다. 동일한 파장의 두 직교하는 광원의 교차점을 활용하여 photo-crosslinking 반응을 구속함으로써 고해상도 volumetric printing이 달성되었다. 여기서 2D galvanometer가 light sheet의 평면을 따라 빔을 직교로 스캔하며, 노출 조건은 in-plane 영역을 제외한 모든 곳에서 도즈가 crosslinking threshold 이하로 유지되도록 설정된다.
 
-Stake-Weighted Quality of Service (SWQoS) is a system that gives higher transaction processing priority to validators who stake more (SOL). Validators who stake more SOL secure more concurrent connections (streams), ensuring that important transactions aren't dropped during network congestion.
+이 접근법은 out-of-plane 노출을 최소화하려고 시도하지만 완전히 제거하지는 못한다. 따라서 high-contrast 도즈 목표는 feature height가 증가함에 따라 비례적으로 더 어려워지므로, 이 방법은 더 얇은 평면 구조체에 더 적합하다.
 
-The Solana network has a total of 2,500 connection channels:
+### Light Sheet 기반 프린팅의 도전과제
 
-* 500 connections: Available for all RPC nodes to use (general channels).  
-* 2,000 connections: Only available to staked validators (stake-weighted connections).
+Light sheet에 기반한 printing 접근법의 주요 도전과제는 더 빠른 relaxing initiator를 도입하여 printing 속도를 향상시키고, 사용자 기반을 넓히기 위해 더 일반적인 initiator를 사용하는 것이다. 또한, 연속 흐름을 light sheet 설정과 통합하는 것은 생산 처리량을 향상시키고 중단 없는 다중 재료 제조 공정을 가능하게 하는 방법을 제시한다.
 
-Each validator receives a portion of these connections based on their staked proportion.  
-In other words, validators with higher stake can open more streams, allowing them to handle a higher transaction load.
+## Roll-to-roll Based Volumetric Printing
 
-Additionally, in the TPU system, each connection (stream) limits the Packets Per Second (PPS) according to stake ratio (rate limiting). Therefore, nodes without stake have very low PPS limits applied, minimizing their impact on the network.
+### 연속 생산을 위한 혁신적 접근
 
-**Pros and Cons**
+Roll-to-roll based volumetric printing은 volumetric printing 기술의 산업화와 대량 생산을 위한 혁신적인 접근법이다. 이 기술은 전통적인 layer-based 3D printing에서의 continuous liquid interface production과 tomographic VAM에서 모두 활용되고 있다. Roll-to-roll tomographic printing에서는 photoresin이 spool-driven tape에 증착되고, 독특한 평면 기하학과 연속적인 기판 움직임을 고려한 tomogram이 계산된다.
 
-* **Enhanced User Experience (UX)**: Thanks to SWQoS, from a user's perspective, transactions are processed quickly even when the network is congested.  
-* **Barriers to Entry**: Since SWQoS provides more bandwidth and concurrency to high-stake validators, smaller or independent validators may face higher barriers to network participation.  
-* **Trust-Based Assumptions**: RPC nodes are not staked, have no voting rights, and don't participate in consensus, so they cannot directly benefit from SWQoS. Therefore, a trust relationship must be formed between validators and RPC nodes to maximize the benefits of SWQoS.
+### 평면 기하학적 형상의 대량 생산
 
-In Solana, how well transactions enter the network and how quickly they are included in blocks are determined by different mechanisms. These two aspects are managed through Stake-Weighted Quality of Service (SWQoS) and Priority Fees, respectively. Below is a summary of the differences between these two systems:
+현재는 thermally gelling photoresist나 hydrogel과 같은 기계적으로 순응성 있는 재료로 제한되어 있지만, 이 접근법은 이론적으로 무제한의 길이를 가진 평면 기하학적 형상의 printing을 가능하게 한다. 이는 특히 유연한 전자 장치, 생체 의학 패치, 또는 대면적 광학 구성 요소와 같은 애플리케이션에서 중요한 장점을 제공한다.
 
-**Difference: SWQoS vs Priority Fees**
+### 연속 흐름 시스템의 구현
 
-* **SWQoS:** A system that provides fast dedicated channels (like VIP-only entrances) allowing validators with more stake to send transactions to the network more easily and in greater volume when the network is congested. In other words, it guarantees 'priority at the network entrance' so transactions enter the network successfully. SWQoS does not determine when transactions will actually be included in blocks.  
-* **Priority Fees:** A system that determines the order of processing after transactions have already entered the leader's queue, prioritizing transactions that pay higher fees. This determines which transactions enter the block first.
+Light sheet 설정을 vat 내의 연속 재료 흐름과 통합하는 것은 생산 처리량을 향상시키고 중단 없는 multimaterial 제조 공정을 가능하게 하는 또 다른 방법이다. Xolography를 사용한 최근의 실증에서, light sheet가 정적인 재료 volume을 횡단하는 기존 방법과는 달리, 이 기법은 정지된 light sheet를 통해 photosensitive resin의 정밀하게 제어된 laminar flow를 사용한다.
 
-## **2.3 Block-Building: TPU & Execution**
+신중하게 설계된 flow cell의 사용을 통해, 경계에서 바람직하지 않은 중합을 완화하면서 printing zone에서 상대적으로 균일한 속도 분포를 달성하는 것이 가능했다. 이 구성은 최대 1.75 mm³/s의 volumetric fabrication rate와 10μm에 근접하는 feature resolution으로 여러 객체의 동시 및 연속 생산을 가능하게 했으며, 이는 복잡한 미세 구조의 대량 생산이 요구되는 애플리케이션에 특히 적합하다.
 
-**![][image6]**
+### 대규모 생산을 위한 하드웨어 혁신
 
-The **Transaction Processing Unit (TPU)** is Solana's **block production engine**. To efficiently process tens of thousands of transactions per second, it operates in parallel across several stages:
+VAM을 산업 규모 생산으로 발전시키는 것은 증가된 처리량, 감소된 인간 개입, 향상된 신뢰성을 갖춘 시스템이 필요하므로 하드웨어 설계와 최적화 측면에서 상당한 도전을 제시한다. Light-based printing에서 주요 장애물은 일반적으로 resin 내의 지수적 light absorption으로 인해 수 센티미터로 제한되는 printable object size의 한계를 극복하는 것이다.
 
-**1\. Fetch Stage/QUIC Streamer: Collecting Transaction Packets from the Network**
+최근의 하드웨어 혁신은 전통적인 원통형 vial을 넘어서는 tomographic VAM으로 접근 가능한 기하학적 형상들을 재구상하고 있다. 한 구성은 높은 원통형 volume의 길이를 따라 나선형 경로를 따라 투사를 전달한다. 이러한 설정에서 volume은 회전하는 반면 방사상으로 offset된 투사들은 회전축을 따라 선형으로 translation되어, vat의 길이에 의해서만 제한되는 높은 aspect ratio 구조체의 제조를 가능하게 한다. 그러나 light attenuation은 여전히 이러한 print의 최대 단면적을 제한하는 역할을 한다.
 
-* Packet memory allocation: Transaction packets received through the QUIC protocol are temporarily stored in memory.  
-* Packet merging: Several packets that arrive simultaneously are merged into a single transaction.  
-* PPS limit application: According to SWQoS, the Packets Per Second (PPS) is restricted. Validators with higher stakes can transmit more packets.
+## Dynamic Interface Printing 기술
 
-**2\. SigVerify Stage: Transaction Validation**
+### 적응형 제조 환경의 구현
 
-* Deduplication: Removes duplicate transactions.  
-* Load-Shedding: When the network is overloaded, some excessive packets are removed to reduce network load.  
-* Signature Verification: Verifies the authenticity of transaction signatures, discarding packets with invalid signatures.
+Dynamic interface printing은 volumetric printing 기술의 가장 진보된 형태 중 하나로, 실시간으로 변화하는 제조 환경에 적응할 수 있는 능력을 제공한다. 이 기술의 핵심은 GRACE(Generative, Adaptive, Context-aware 3D printing) workflow로, volumetric imaging과 computer vision의 조합이 printing 환경의 내용물을 감지하고, parametric modeling과 VAM이 vat에 로드된 객체의 기하학적, 화학적, 또는 생물학적 특성에 정확히 정렬되거나 적응하도록 정밀하게 생성된 구조체의 생산을 가능하게 한다.
 
-**3\. Banking Stage: Transaction Execution and Block Construction**
+### 실시간 모니터링과 피드백 시스템
 
-* Transaction processing decision: Determines whether to forward, hold, or process transactions.  
-* If the validator is the current leader, it processes waiting or newly arrived transactions in the current slot.  
-* Forms a candidate block.
+Dynamic interface printing의 핵심 기술 중 하나는 실시간 모니터링과 metrology이다. 이는 print 진행 상황을 평가하고 잠재적으로 print 품질을 최적화하기 위한 동적 조정을 가능하게 하는 데 중요하다. 저대비 시나리오에서 이러한 문제를 해결하기 위해 다양한 imaging 기술들이 개발되고 있다.
 
-**4\. Broadcast Stage: Propagating the Completed Block to the Network**
+Optical scattering tomography는 3D 시각화를 위해 사용되며, 굴절률 변화를 측정하는 대신 top-down 조명 설정에 의해 제공되는 side-scattered light를 영상화하여 대비를 제공한다. 이 접근법은 resin의 scattering 특성이 photopolymerization에 반응하여 변할 때 특히 효과적이다. 주목할 만한 점은 이 방법이 재구성 데이터로부터의 피드백에 기반하여 필요한 광 도즈를 달성했을 때 printing 과정을 자동으로 종료하는 피드백 제어 루프에 통합되었다는 것이다.
 
-* Shred creation: Converts validated transactions into **entries**, then packages them into **shreds**. This is similar to compressing a large file with ZIP for split transmission.  
-* After serializing, signing, and encoding the shreds, they are quickly propagated to all validators through the **Turbine protocol**.
+### 인공지능과 기계학습의 통합
 
-In this way, Solana's TPU manages high transaction loads through the stages of packet collection > validation > execution > propagation, verifies the authenticity of transactions, and creates blocks according to the schedule. Through parallel processing, the stake-weighting system, and QUIC protocol, it consistently delivers high performance.
+Computer vision과 machine-learning tool들은 printing error의 조기 발견과 on-the-fly 품질 제어, 그리고 printing quality를 향상시키기 위한 printing parameter의 closed-loop correction에 대한 명확한 잠재력을 가지고 있다. Neural network model과 같은 훈련된 artificial intelligence tool들은 잠재적으로 imaging data의 처리, context-driven architecture의 생성, 그리고 corrective measure의 계산을 가속화할 수 있다.
 
-## **Banking Stage in Detail**
+이러한 모델들은 print outcome의 광범위한 data set에서 훈련될 수 있으며, 예를 들어 deviation을 빠르게 인식하고 correction을 수행하며 잠재적으로 주어진 재료에 대한 공정을 시뮬레이션하고 실제 volumetric printing 세션에서 corrective action을 실행할 수 있게 한다. Field-programmable gate array도 특정 계산 작업을 높은 효율로 수행하는 데 사용될 수 있어, imaging data의 더 빠른 처리와 light-dose correction의 계산을 가능하게 한다.
 
-The **Banking Stage** is the core stage of the TPU that turns transactions into actual blocks. It determines how validators process received transactions and constructs candidate blocks.
+### Context-aware Manufacturing의 발전
 
-**1\. Determining Packet Treatment**
+Dynamic interface printing의 주요 능력 중 하나는 build volume 내의 기존 feature에 구조체를 비침습적으로 overprinting하는 것이다. 이러한 잠재력을 바탕으로, context-aware 3D printing은 printing environment의 내용물을 감지하고, 복합 resin(예: living cell, particle, fiber 또는 기타 inclusion을 포함하는)을 printing하기 위한 응용과 함께 구조적으로 복잡한 객체를 생산할 수 있는 additive manufacturing의 능력을 확장하면서, 고도로 맞춤화된 multimaterial part의 생산에 중요한 역할을 할 수 있다.
 
-* **Forward**: If the validator is not the current leader, it forwards the transaction to the leader for the next slot.  
-* **Hold**: If the validator is scheduled to be the leader for the next slot, it temporarily keeps the transaction in a waiting state.  
-* **Process**: If the validator is the leader for the current slot, it executes this transaction to update the Bank state.
+이러한 context-driven 제조의 도입은 bioengineering, soft robotics, high-performance metamaterial 분야에서 응용될 수 있으며, additive manufacturing이 구조적으로 복잡한 객체를 생산할 수 있는 능력을 확장한다. 대규모 volumetric imaging data set의 검색, 재구성, 업데이트와 관련된 도전과제와, 빠른 printing 과정과 보조를 맞추면서 새로운 최적화된 투사를 생성하는 것을 다루는 것은 고급 계산 프레임워크가 필요함을 의미한다.
 
-**2\. Bank Integration**
+## 재료 설계와 미래 전망
 
-* A "Bank" is a kind of snapshot in the Solana blockchain that represents the ledger state of the current slot. It acts as a "real-time ledger" showing the current state of all accounts' balances, statuses, and data.  
-* Successfully processed transactions update the Bank state (balances, account data, etc.), forming the foundation for the next block.
+### 차세대 Photoinitiator 시스템
 
-**3\. Parallel Execution**
+미래의 volumetric printing 재료 설계에서 가장 중요한 발전 방향 중 하나는 새로운 photoinitiator 기술의 개발이다. 기존의 radical-based polymerization 접근법을 위해서는 새로운 photoswitchable photoinitiator, two-step photoinitiator, 그리고 더 일반적으로는 nonlinear photoinitiator들이 광 흡수의 지수적 감소를 보상하여 이러한 기술의 확장을 가능하게 하는 데 사용될 수 있다.
 
-* Parallel execution means processing multiple transactions simultaneously rather than one by one.  
-* Non-conflicting transactions: Bundles up to 64 non-conflicting transactions into one entry and processes them simultaneously.  
-* Conflicting transactions: Separated into distinct entries and executed sequentially.
+또 다른 중요한 발전은 높은 반응성을 유지하면서 흡수와 scattering을 줄이기 위한 initiator의 excitation wavelength의 red-shifting과 대안적인 photochemistry의 가능성을 여는 것이다. 이는 dual-colour photopolymerization printing chemistry에서 특히 중요하며, tomographic printing의 경우 가시광 영역에서 흡수를 갖는 initiator 조합을 사용함으로써 이러한 redshift가 부분적으로 실현되었지만, 효율적인 적색 및 적외선 initiator가 여전히 요구되고 있다.
 
-**4\. Validation and Block Assembly**
+### 다중 화학 반응 시스템
 
-* Invalid transactions (signature errors, insufficient funds, etc.) are discarded.  
-* Verified transactions are recorded in the Accounts DB.  
-* When the leader slot ends, the generated block is finalized and propagated to the network.
+Light-based volumetric printing을 위한 새로운 재료 개발에서 흥미로운 관점 중 하나는 radical과 직교하는 대안적인 photochemistry의 사용이다. 이러한 방식으로 기존의 radical-based reaction을 다른 light-triggered polymerization reaction과 결합하여 sequential printing 단계나 multitechnology 접근법의 필요 없이 동일한 printing 과정 내에서 서로 다른 재료와 성분들을 매끄럽게 도입할 수 있다.
 
-Through this process, Solana efficiently processes many transactions in parallel and accurately manages account-based state.
+예를 들어, 최근 연구는 서로 다른 파장에 반응하는 photoinitiator와 함께 acrylate와 epoxide로 구성된 resin을 사용하여 이러한 개념을 실증했으며, 각각 free radical과 cationic polymerization을 통해 중합된다. 두 반응은 단순히 printer의 광원을 변조함으로써 서로 독립적으로 trigger될 수 있다.
 
-## **2.4 Turbine Block Propagation**
+### 미래 기술의 융합
 
-After a block is built, it's ready to be transmitted to all participants in the network via Turbine. This process is called **block propagation**.
+미래의 volumetric printing 기술은 machine learning과 artificial intelligence, 고급 imaging, multimodal printing 등의 emerging technology의 융합을 요구한다. 이는 사용자로부터 최소한의 또는 전혀 교정적 개입 없이 원하는 print를 자동으로 수행할 수 있고, printable material의 유형에 제한이 없는 smart printer의 개발을 가능하게 할 것이다.
 
-![][image7]
+Field-based printing 기법이 기존 구조체와 inclusion에 'overprint'할 수 있는 능력은 volumetric printing을 multitechnology printing device에서 이상적인 tool로 만든다. 이 개념은 기존의 layerwise 기법으로 생산되어야 하는 요소들이 VAM-produced print로 빠르게 수정, 캡슐화 또는 연결되어 복잡한 복합 재료를 생성할 수 있는 미래로의 길을 열어준다.
 
-## **Core Principles of Turbine**
+## 결론
 
-Turbine is Solana's **block propagation protocol**. Instead of sending the entire block to all nodes at once, it uses a more efficient method.
+DLP 3D stereolithography와 volumetric printing 기술은 지난 몇 년간 급속한 발전을 이루며 다양한 연구 분야에 영향을 미치고 있다. Holography-based, computational tomography-based, xolography, roll-to-roll based, 그리고 dynamic interface printing 등의 기술들은 각각 고유한 장점과 응용 영역을 가지고 있으며, 이들의 융합을 통해 더욱 혁신적인 제조 솔루션이 창출될 것으로 예상된다.
 
-![][image8]
+미래의 발전 방향은 재료 설계의 혁신, 특히 다중 화학 반응 시스템과 orthogonal reaction의 구현, 그리고 radical-free 및 장파장 반응성 화학의 개발에 초점을 맞추어야 한다. 또한 magnetic field, microwave radiation, 심지어 X-ray field와 같이 대부분의 매체를 거의 방해받지 않고 통과할 수 있는 다른 유형의 field로 field-based printing 개념을 확장하는 것이 volumetric printing의 추가적인 확장을 가능하게 할 것이다.
 
-**1. Shredding: Breaking Blocks into Pieces**  
-The leader node splits the block data into MTU-sized data shreds (the maximum amount of data that can be transmitted from one node to another without further splitting) and creates 32 data shreds. It also creates 32 recovery shreds to prepare for potential data loss and corruption.  
-
-**2. Erasure Coding: Data Recovery Insurance**
-* Using the Reed-Solomon erasure coding method, 32 recovery shreds are generated. Recovery shreds are redundant packets containing parity information (recovery data).  
-* Even if packets are lost or arrive late, validators can recover the lost data through parity information.  
-* Solana uses 32:32 FEC (Forward Error Correction). This means that even if up to 32 of the 64 packets are lost, they can be recovered without retransmission, providing about 99% transmission success rate. Leaders have the authority to increase the FEC ratio to improve the probability of successful block transmission.  
-
-**3. Turbine Tree Structure: Efficient Propagation**  
-Turbine uses a tree-based protocol for efficient data transfer between validators.
-
-![][image9]
-
-The forwarding process is as follows:
-
-* **List Creation**: All validators in the network are sorted by stake (amount of staked SOL). Higher-stake validators are prioritized to receive data faster.  
-* **List Shuffling**: The sorted validator list is deterministically shuffled using a seed based on the slot leader's ID, slot number, shred index, etc., making data transmission more efficient. Here, "deterministically shuffled" means that the shuffling method is not completely random but always produces the same result based on predetermined rules and input values (e.g., seed value, slot leader ID, slot number, shred index). This ensures that all nodes in the network can obtain the same shuffled result if they know the same input values.  
-* **Layer Formation**: The shuffled list is organized into a hierarchical tree structure based on a parameter called DATA_PLANE_FANOUT (currently set at 200). Through a method where one node forwards data to lower nodes, rapid propagation is ensured, typically requiring only 2-3 hops (Leader → Root → Layer 1 → Layer 2) to reach all validators.
-
-Currently, Turbine uses the UDP protocol for block propagation, providing very low latency.
-
-## **Advantages Over Traditional Gossip**
-
-The gossip protocol is a block propagation mechanism widely used in traditional blockchains, where each node passes received information to randomly selected neighboring nodes. This has the characteristic of information gradually spreading throughout the network, but scalability issues arise as the number of nodes increases.
-
-Turbine overcomes these limitations of the gossip method, providing the following advantages:
-
-1. **Scalability**: Tree-based data distribution prevents excessive load.  
-2. **Reduced Latency:** Parallel data forwarding enables quick block data propagation and confirmation.  
-3. **Integrity Guarantee:** Even when packets are lost, data can be efficiently recovered using erasure coding and retransmission mechanisms, ensuring data integrity.  
-4. **Bandwidth Savings:** Each node processes only the minimum required data without duplication, efficiently using network bandwidth.
-
-## **Turbine's Role in High-Throughput Architecture**
-
-* **Fast block distribution** enables quick block verification among global validators.  
-* Supports **rapid leader transition**, allowing the next slot's leader to efficiently receive data.
-
-In conclusion, Turbine plays an essential role in enabling Solana to function as a high-performance and scalable blockchain.
-
-## **2.5 Transaction Validation Unit (TVU)**
-
-**![][image10]**
-
-After blocks are propagated through Turbine, the **Transaction Validation Unit (TVU)** verifies the accuracy of the blocks through the following procedures:
-
-1. **Shred Reconstruction**: Blocks are split into data fragments called shreds for network propagation. The TVU combines these fragments to restore the original block.  
-2. **State Verification**: Verifies that the information in the reconstructed block (account balances, smart contract states, etc.) is correct and consistent with the previous state.  
-3. **Execution Replay**: Independently re-executes the transactions included in the block to confirm that the results match the results recorded in the block.  
-4. **Voting Mechanism**: Uses the **Tower BFT** mechanism to vote on validated blocks, cryptographically signs them, and participates in network consensus.
-
-Through these validation steps, the TVU ensures the accuracy and consistency of each block, maintaining the integrity of the ledger.
-
-## **2.6 Consensus: Voting & Fork Resolution**
-
-Solana achieves **fast finality** through **Proof of Stake (PoS)** and **Tower BFT**:
-
-**1\. Tower BFT & Block Finalization**
-
-* **PoS-based:** Tower BFT is Solana's consensus algorithm, where validators receive voting power proportional to their staked amount.  
-* A block is finalized when more than 66% of the network stake agrees (supermajority).  
-* **Lockout mechanism:** This mechanism restricts validators from voting on different forks for a certain period after voting for a specific block, limiting validators' ability to change fork choices and increasing network stability. This lockout **gets longer with each subsequent vote**, preventing validators from easily changing forks and naturally guiding the network to **converge on a single chain**.
-
-## **Tower BFT & Block Finalization Process**
-
-1. **Validators propose or vote on blocks for each slot according to the predetermined leader schedule.**  
-    In Solana, block producers (leaders) are predetermined through PoH (Proof of History), and the designated leader generates a block in their slot.
-
-2. **Validators judge whether newly created blocks are valid and send votes for that slot.**  
-    These votes are recorded on the Solana blockchain as transactions, serving as validators' trust records.
-
-3. **With each vote, the 'lockout' period for previous slots is extended.**  
-    When a validator votes for a specific slot, a restriction is created that prevents voting on other forks for a certain number of slots. The lockout doubles with each subsequent vote, making it increasingly difficult to switch forks.
-
-4. **As votes accumulate, more than 66% of the total network stake supports a specific block, and that block is finalized.**  
-    This stake-based voting prevents chain forking and stably converges to a single chain.
-
-5. **Validators can only vote on the next slot if the blocks they previously voted for are included in the new chain.**  
-    If not included, the vote is rejected due to lockout violation, and the validator cannot follow that chain. This strongly maintains network finality.
-
-**2\. Fork Handling & Chain Selection**
-
-**![][image11]**
-
-* When conflicting blocks are proposed, the blockchain can branch into multiple forks.  
-* Validators select the heaviest chain based on **PoH timestamps** (selecting the oldest fork based on the time information recorded in each block) and **stake-weighted voting** (giving higher weight to votes from validators with more stake).  
-* Unselected forks are discarded, and transactions included only in rejected forks must be resubmitted.
-
-By combining Proof of Stake with Tower BFT, Solana allows **honest validator networks to quickly finalize blocks**, consistently maintaining high throughput.
-
-# **3\. Reasons for Dropped Transactions**
-
-The main reasons why transactions in Solana fail or get dropped (excluding custom program errors or incorrect instructions) are:
-
-**1\. Network Drops**
-
-* Transactions can be dropped due to UDP packet loss or network congestion.  
-* Under heavy load, validators might exceed their transaction forwarding limits (10,000 per second). Transactions exceeding this limit are not forwarded to other validators and are dropped.
-
-**2\. Stale or Incorrect Blockhash**
-
-* Transactions include a **recent blockhash** to timestamp (record when the transaction was created) and determine processing order.  
-* Validators reject transactions if the provided blockhash is invalid or doesn't match the current state.
-
-**3\. Expired Blockhash**
-
-* Blockhashes expire after approximately **151 slots** (about 1 minute 19 seconds).  
-* Transactions referencing expired blockhashes are automatically rejected by validators.
-
-**4\. Lagging RPC Nodes**
-
-* RPC node pools might be temporarily out of sync with the latest state.  
-* Transactions using blockhashes obtained from up-to-date nodes may be rejected if sent to lagging nodes.
-
-**5\. Temporary Network Forks**
-
-* Temporary forks can occur due to slow validators.  
-* Transactions using blockhashes from a fork recognized by only a few validators may be dropped when the network selects a different fork.
-
-Understanding these scenarios helps diagnose and resolve transaction issues in the Solana network.
-
-## **Workarounds**
-
-**1\. Resubmit Transactions**
-
-* Strategically resubmitting transactions can increase their chances of being included in a block.
-
-**2\. Stake-Weighted Quality of Service (SWQoS)**
-
-* Using staked RPC connections (e.g., **Helius**, **Triton**) can process transactions with higher priority and success rates.
-
-**3\. Jito**
-
-* Utilizing the Jito Block Engine and paying appropriate Jito tips not only prioritizes transaction processing but also provides MEV protection, prevents transaction cancellation, and ensures optimized transaction processing through bundling in the Solana network.
-
-**4\. Jito Alternatives**
-
-* You can modify Jito to use your own clients or use services that have optimized the network to transmit data quickly on the blockchain (e.g., **bloXroute**, **Temporal/Nozomi**, **NextBlock**).
-
-# **4\. Jito**
-
-Jito is a **modified version of the Solana validator client**, developed to effectively capture and fairly distribute **Maximal Extractable Value (MEV)**. MEV refers to **additional profits that validators can earn by adjusting or selecting the order of transactions**. Jito enhances Solana's standard validator by adding specialized on-chain and off-chain components to improve profitability, optimize block space, and fairly redistribute MEV profits between validators and stakers.
-
-Jito's main components are:
-
-* **Off-chain components**: Relayer, Block Engine  
-* **On-chain programs**: Tip Payment Program, Tip Distribution Program  
-* Specialized validator pipeline (**BundleStage**)
-
-## **Key Components and Architecture**
-
-**1\. Jito-Solana** Validator
-
-* Runs additional stages to handle MEV bundles: **RelayerStage**, **BlockEngineStage**, **BundleStage.**  
-* Responsible for validating, simulating, and atomically executing bundles.
-
-**2\. Relayer**
-
-* Acts as a transaction entry point gateway.  
-* Delays transactions by about 200ms for MEV bundle formation.  
-* Communicates via gRPC protocol to prevent bottlenecks and support smooth load balancing.
-
-**3\. Block Engine**
-
-* Core decision-making layer for MEV bundle processing.  
-* Receives transactions and bundles from searchers/traders.  
-* **Simulates bundles off-chain, prioritizing them based on profitability (tips and computing efficiency).**  
-* Selects the optimal bundles to atomically forward to validators.
-
-**4\. BundleStage (Validator Pipeline)**
-
-* Ensures atomic execution of bundles – all transactions within a bundle either succeed together or fail together.  
-* Guarantees strict sequential execution of transactions within bundles.  
-* Locks accounts associated with a bundle to prevent conflicts with other transactions.  
-* Integrates directly into the validator's transaction processing pipeline alongside the standard BankingStage.
-
-**5\. Tip Payment Program (On-chain)**
-
-* Serves as a kind of "piggy bank" for storing MEV tips.  
-* Searchers deposit tips (additional lamports) into predetermined PDAs (Program-Derived Accounts).  
-* Facilitates the secure management and tracking of tips.
-
-**6\. Tip Distribution Program (On-chain)**
-
-* Distributes MEV tips to validators and stakers according to stake ratio.  
-* Every epoch, tip rewards are distributed according to a validator reward list organized as a Merkle tree, with each validator proving their reward information is included in the list through a Merkle proof. Here, Merkle proof is a lightweight verification method proving that a validator's reward information is included in the Merkle tree.
-
-## **Detailed Transaction Flow**
-
-**1\. Transaction Submission & Relayer Delay**
-
-* User transactions enter through the **Relayer** and are held for about 200ms to form MEV bundles.
-
-**2\. Bundle Formation & Simulation**
-
-* MEV searchers submit bundles (up to 5 transactions) to the **Block Engine.**  
-* The Block Engine quickly simulates these bundles off-chain to analyze their profitability and feasibility.
-
-**3\. Bundle Auction**
-
-* The Block Engine conducts auctions every 200ms.  
-* Bundles are prioritized based on two criteria: **size of the provided tip** and **computing efficiency (Tip per CU ratio)**.  
-* Bundles with conflicting accounts are auctioned together, while non-conflicting bundles are processed in parallel auctions.
-
-**4\. Validator Execution**
-
-* Selected bundles from the auction are sent to the validator's **BlockEngineStage** and then move to the **BundleStage pipeline**.  
-* Transactions within a bundle are executed atomically in a strict order.  
-* Related accounts are locked until execution is completed, making simultaneous changes impossible.
-
-**5\. Tip Collection**
-
-* Tips from executed bundles are deposited in PDAs managed by the **Tip Payment Program**.
-
-**6\. Block Creation and Broadcast**
-
-* The validator combines MEV bundles and regular transactions to construct a block.  
-* The first 80% of the slot time prioritizes space for MEV bundles; if bundles are insufficient, the remaining slot time is allocated to regular transactions.  
-* The finalized block is propagated to the network.
-
-## **Atomicity and Bundle Constraints**
-
-* Bundles must ensure atomicity where all transactions either succeed together or fail together.  
-* Bundles cannot span multiple slots and must comply with cost and QoS constraints.  
-* Conflicts with accounts essential to the consensus mechanism (such as voting accounts) are prohibited.
-
-## **Tip Payment and Distribution Mechanism**
-
-**Current Model (Centralized)**
-
-* MEV tips collected during each epoch are aggregated in the **Tip Distribution Account (TDA)**.  
-* Tip distribution is managed through a centrally calculated Merkle root, and stakers claim rewards through it.
-
-**Future Model (Decentralized: Tip Rewards NCN)**
-
-* Nodes independently calculate and vote on the Merkle root.  
-* Tip distribution is finalized when 2/3 of nodes reach consensus.  
-* Automatic deductions (3%) for the DAO and NCN operators are included.  
-* Decentralization, transparency, and security are enhanced.
-
-**Conclusion & Impact**
-
-* Jito has become an important component of Solana, accounting for about 2/3 of fee revenue.  
-* Over 90% of Solana's active stake uses Jito, playing a vital role in validator economics and network stability.  
-* Understanding Jito's structure (Relayer, Block Engine, Bundle Stage, Tip management programs) is essential to understanding Solana's ecosystem.
-
-# **5\. Yellowstone Geyser & Real-Time Data Streaming**
-
-## **How Yellowstone Geyser Works**
-
-* When validators process transactions and update account states, Geyser captures these events (e.g., token transfers, smart contract logs, slot completions) in near real-time.  
-* Events are streamed to external subscribers through the Dragon's Mouth gRPC interface as granular data feeds.  
-* Clients can set filters to receive updates only for specific accounts or programs, minimizing bandwidth usage.
-
-## **Benefits for Developers & dApps**
-
-* **Real-Time Analytics**: DeFi, NFT, and trading platforms can access immediate data.  
-* **Event Filtering**: Subscribe only to relevant transactions.  
-* **Lower Infrastructure Costs**: Minimize overhead by streaming only necessary data.
-
-# **6\. Conclusion**
-
-Solana's **transaction lifecycle** leverages innovative components — **Users → Gulf Stream → Block Production → PoH → Turbine → Block Verification & Consensus** — to enable **high-speed, high-throughput** block creation. By **eliminating mempools**, implementing **stake-weighted prioritization**, and utilizing **real-time data**, Solana minimizes latency, congestion, and bottlenecks.
-
-By utilizing **Yellowstone Geyser** for transaction streaming and setting appropriate fees and tips via **SWQoS**, **Jito**, or **Jito alternatives**, users can quickly capitalize on market opportunities. Additionally, **distance to the Yellowstone Geyser node** and **internet latency to SWQoS and Jito services** significantly impact transaction speed and execution efficiency, making **network topology** a critical consideration for traders and dApp developers.
-
-Several upcoming updates this year will further enhance Solana's performance and user experience. **Agave's major upgrade** will dramatically improve network processing efficiency and speed through the introduction of the Greedy Scheduler, CU limits, Turbine improvements, and more. Additionally, the **new consensus algorithm** scheduled for Q4 is expected to significantly reduce chain finality time, further accelerating transaction settlement.
-
-Jump Crypto's upcoming **Firedancer client** aims to process up to **1 million transactions per second (TPS)**, significantly enhancing Solana's performance, while the introduction of **Doublezero**, a dedicated high-performance networking layer, will increase transaction throughput and reduce latency and jitter, improving validator performance. Furthermore, **Asynchronous Program Execution (APE)** will alleviate network transaction bottlenecks by processing program execution asynchronously, and **native support for Passkeys** scheduled for April will greatly improve the Web3 login UX through password-free authentication using fingerprint or Face ID.
-
-Through continuous innovation and optimization, Solana is establishing itself as a leading blockchain for fast and scalable application development, setting new standards for Web3 as a premier infrastructure for decentralized systems.
+이러한 발전들은 volumetric printing을 초기 단계에서 성숙한 기술로 끌어올려, 산업, 연구 센터, 의료 시설에서의 광범위한 채택을 위한 길을 열고, 궁극적으로 모든 디지털 구조 계획의 거의 즉시 제조를 가능하게 할 것이다. Volumetric printing 기술의 지속적인 발전은 제조업의 패러다임을 완전히 바꾸어 놓을 혁신적 잠재력을 가지고 있으며, 이는 21세기 제조업의 핵심 기술로 자리잡을 것으로 전망된다.
